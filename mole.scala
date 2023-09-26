@@ -1,4 +1,4 @@
-package blockbattle
+package moleTerritory
 
 class Mole(
   val name: String,
@@ -7,13 +7,13 @@ class Mole(
   val color: java.awt.Color,
   val keyControl: KeyControl
 ) {
-  var points = 0
+  var area = 0
   var energy = 200
   override def toString: String = {
-    s"Mole[name=$name, pos=$pos, dir=$dir, points=$points]"
+    s"Mole[name=$name, pos=$pos, dir=$dir, points=$area]"
   }
-  def modifyPoints(points: Int): Unit = {
-    this.points += points;
+  def modifyArea(points: Int): Unit = {
+    this.area += area;
   }
   def modifyEnergy(energy: Int): Unit = {
     this.energy += energy;

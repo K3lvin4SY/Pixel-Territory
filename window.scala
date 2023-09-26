@@ -1,6 +1,6 @@
 //> using scala 3.3
 //> using lib se.lth.cs::introprog:1.3.1
-package blockbattle
+package moleTerritory
 import java.awt.{Color as JColor}
 
 class BlockWindow(
@@ -27,8 +27,8 @@ class BlockWindow(
     eraseBlocks((0, 0), (30, 2))(y => backgroundColorAtDepth(y))
     write(moles(0).name + " MOLE", (0,0), black)
     write(moles(1).name + " MOLE", (15,0), black)
-    write("pts: " + moles(0).points, (0,1), black)
-    write("pts: " + moles(1).points, (15,1), black)
+    write("pts: " + moles(0).area, (0,1), black)
+    write("pts: " + moles(1).area, (15,1), black)
     write("Energy: " + moles(0).energy, (0,2), black)
     write("Energy: " + moles(1).energy, (15,2), black)
   }

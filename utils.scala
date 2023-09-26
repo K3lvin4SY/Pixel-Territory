@@ -1,4 +1,4 @@
-package blockbattle
+package moleTerritory
 
 case class KeyControl(left: String, right: String, up: String, down: String) {
   def direction(key: String): (Int, Int) = {

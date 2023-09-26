@@ -1,4 +1,4 @@
-package blockbattle 
+package moleTerritory 
 type Pos = (Int, Int)
 
 object Main {
