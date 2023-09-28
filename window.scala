@@ -24,13 +24,11 @@ class BlockWindow(
   def updatePanel(moles: Array[Mole]): Unit = {
     import GameProperties.Color.black;
     import GameProperties.backgroundColorAtDepth;
-    eraseBlocks((0, 0), (30, 2))(y => backgroundColorAtDepth(y))
+    eraseBlocks((0, 0), (30, 1))(y => backgroundColorAtDepth(y))
     write(moles(0).name + " MOLE", (0,0), black)
     write(moles(1).name + " MOLE", (15,0), black)
-    write("pts: " + moles(0).area, (0,1), black)
-    write("pts: " + moles(1).area, (15,1), black)
-    write("Energy: " + moles(0).energy, (0,2), black)
-    write("Energy: " + moles(1).energy, (15,2), black)
+    write("Area: " + moles(0).area.length, (0,1), black)
+    write("Area: " + moles(1).area.length, (15,1), black)
   }
 
   def write(
@@ -75,6 +73,68 @@ class BlockWindow(
   def setBackground(leftTopPos: Pos)(size: (Int, Int))(colorFunction: Int => JColor = (_: Int) => JColor.gray): Unit = {
     val rightBottomPos = (leftTopPos._1 + size._1, leftTopPos._2 + size._2 )
     eraseBlocks(leftTopPos, rightBottomPos)(colorY => colorFunction(colorY));
+  }
+  def fillPath(path: Array[(Int, Int)], mole: Mole): Unit = {
+    // find bounding box
+    var maxX: Int = path(0)._1;
+    var minX: Int = path(0)._1;
+    var maxY: Int = path(0)._2;
+    var minY: Int = path(0)._2;
+    for (pos <- path) {
+      val x = pos._1
+      if (x < minX) {
+        minX = x
+      } else if (x > maxX) {
+        maxX = x
+      }
+
+      val y = pos._2
+      if (y < minY) {
+        minY = y
+      } else if (y > maxY) {
+        maxY = y
+      }
+    }
+
+    // begin filling
+    var fillMode = false
+    var lastDirs = Array.empty[String]
+    for (y <- minY to maxY) {
+      for (x <- minX to maxX) {
+        if (!path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 010
+          fillMode = !fillMode
+        } else if (!path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 011
+          if (path.contains(x, y-1)) { // if dir UP
+            lastDirs :+ "UP"
+          }
+          if (path.contains(x, y+1)) { // if dir DOWN
+            lastDirs :+ "DOWN"
+          }
+        } else if (path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 110
+          var currentDirs = Array.empty[String]
+          if (path.contains(x, y-1)) { // if dir UP
+            currentDirs :+ "UP"
+          }
+          if (path.contains(x, y+1)) { // if dir DOWN
+            currentDirs :+ "DOWN"
+          }
+          val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
+          println(dirsInCommon)
+
+          if (dirsInCommon.length == 0) {
+            fillMode = !fillMode
+          }
+          lastDirs = Array.empty[String]
+
+        }
+
+        if (fillMode && lastDirs.length == 0) {
+          setBlock(x, y)(mole.areaColor)
+        }
+      }
+      fillMode = false
+      lastDirs = Array.empty[String]
+    }
   }
 }
 

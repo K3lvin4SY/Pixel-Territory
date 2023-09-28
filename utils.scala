@@ -1,4 +1,5 @@
 package moleTerritory
+import java.awt.{Color as JColor}
 
 case class KeyControl(left: String, right: String, up: String, down: String) {
   def direction(key: String): (Int, Int) = {
@@ -15,11 +16,7 @@ case class KeyControl(left: String, right: String, up: String, down: String) {
     }
   }
   def has(key: String): Boolean = {
-    if (Array(left, right, up, down).contains(key)) {
-      true;
-    } else {
-      false;
-    }
+    Array(left, right, up, down).contains(key)
   }
 }
 
@@ -30,4 +27,12 @@ def getPosFromArray(moles: Array[Mole]): Array[Pos] = {
     positions = positions :+ mole.pos
   }
   positions
+}
+
+def combineColors(color1: JColor, color2: JColor): JColor = {
+  val combinedRed = (color1.getRed + color2.getRed) / 2
+  val combinedGreen = (color1.getGreen + color2.getGreen) / 2
+  val combinedBlue = (color1.getBlue + color2.getBlue) / 2
+  
+  new JColor(combinedRed, combinedGreen, combinedBlue)
 }

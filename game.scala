@@ -43,14 +43,14 @@ class Game(
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
 
-  val leftMole: Mole = new Mole(leftPlayerName, (offsetFromBorder, y), (0, 0), Color.gold, new KeyControl("A", "D", "W", "S"))
-  val rightMole: Mole = new Mole(rightPlayerName, (windowSize.width-offsetFromBorder, y), (0, 0), Color.mole, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"))
+  val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"))
+  val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"))
   val moles = Array(leftMole, rightMole);
 
   def drawWorld(): Unit = {
     window.setRectangle(0, 0)(windowSize.size)(Color.white)
     for (mole <- moles) {
-      window.setBlock(mole.pos)(mole.color)
+      mole.spawn(window)
     }
     window.updatePanel(moles)
   }
@@ -59,9 +59,7 @@ class Game(
     var winningPlayer: Mole = mole;
     if (!winner) {
       val moleIndex = moles.indexOf(mole)
-      if (moleIndex >= 0) {
-        winningPlayer = moles(1 - moleIndex)
-      }
+      winningPlayer = moles(1 - moleIndex)
     }
     window.setRectangle(0, 0)(windowSize.width, windowSize.height)(mole.color)
     window.write(
@@ -85,12 +83,24 @@ class Game(
     } else if (window.getBlock(mole.nextPos) == Color.tunnel) {
       mole.modifyEnergy(-1);
     }*/
-    window.setBlock(mole.nextPos)(mole.color)
 
-    // fills in backgound color (including tunnel), this also removes the old mole block
+    
+
     if (!windowSize.isPosOutOfBounds(mole.nextPos)) {
+      val tempPrevColor = window.getBlock(mole.nextPos);
+      window.setBlock(mole.nextPos)(mole.color)
+
       if (window.getBlock(mole.nextPos) == mole.color && mole.dir != (0, 0)) {
-        window.setBlock(mole.pos)(Color.sky)
+        if (mole.area.contains(mole.pos)) { // if it is moles territory
+          window.setBlock(mole.pos)(mole.areaColor)
+        } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
+          window.setBlock(mole.pos)(mole.prevColor)
+        } else {
+          window.setBlock(mole.pos)(combineColors(mole.areaColor, mole.prevColor))
+        }
+      }
+      if (tempPrevColor != mole.color) {
+        mole.prevColor = tempPrevColor
       }
     }
     mole.move()
@@ -107,13 +117,9 @@ class Game(
       for (mole <- moles) {
         updateMoles(mole) // flyttar, ritar, suddar, etc.
         updateGeneral(); // updates text and other game mechanics
-        if (mole.area >= (windowSize.width*windowSize.height) ) {
+        if (mole.area.length >= (windowSize.width*windowSize.height) ) {
           quit = true;
           gameover(mole, true);
-        }
-        if (mole.energy <= 0) {
-          quit = true;
-          gameover(mole, false);
         }
       }
       val elapsedMillis = (System.currentTimeMillis - t0).toInt
