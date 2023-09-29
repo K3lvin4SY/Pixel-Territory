@@ -3,7 +3,7 @@ import java.awt.{Color as JColor}
 
 object GameProperties {
   val windowSize = WindowSize(50, 50, 21)
-  val windowTitle = "PIXEL TERRITORY"
+  val windowTitle = "MOLE TERRITORY"
   object Color {
     val black = new JColor(0, 0, 0)
     val white = new JColor(255, 255, 255)
@@ -91,6 +91,17 @@ class Game(
       window.setBlock(mole.nextPos)(mole.color)
 
       if (window.getBlock(mole.nextPos) == mole.color && mole.dir != (0, 0)) {
+        if (mole.area.contains(mole.pos)) {
+          if (mole.currentPath.length > 0) {
+            // fill path
+            println("Printed")
+            window.fillPathOutline(mole.currentPath, mole)
+            window.fillPath(mole.currentPath, mole)
+            mole.currentPath = Array.empty[Pos]
+          }
+        } else {
+
+        }
         if (mole.area.contains(mole.pos)) { // if it is moles territory
           window.setBlock(mole.pos)(mole.areaColor)
         } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
@@ -108,7 +119,7 @@ class Game(
 
 
   var quit = false
-  val delayMillis = 80
+  val delayMillis = 180
 
   def gameLoop(): Unit = {
     while (!quit) {
@@ -137,6 +148,8 @@ class Game(
           for (mole <- moles) { // ändra riktning på resp. mullvad
             if (mole.keyControl.has(key.toUpperCase())) {
               mole.setDir(key.toUpperCase());
+            } else if (key.toUpperCase() == "F") {
+              mole.setDir("FORCE");
             }
           }
         case BlockWindow.Event.WindowClosed =>

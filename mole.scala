@@ -44,7 +44,12 @@ class Mole(
   /** Uppdaterar pos så att den blir nextPos */
   def move(): Unit = {
     pos = nextPos;
-    currentPath :+ pos;
+    if (prevColor != areaColor) {
+      if (!currentPath.contains(pos)) {
+        currentPath :+= pos;
+        println("added: "+pos)
+      }
+    }
   }
   /** Ger nästa position enligt riktningen dir utan att uppdatera pos */
   def nextPos: Pos = {

@@ -74,6 +74,41 @@ class BlockWindow(
     val rightBottomPos = (leftTopPos._1 + size._1, leftTopPos._2 + size._2 )
     eraseBlocks(leftTopPos, rightBottomPos)(colorY => colorFunction(colorY));
   }
+  def fillPathOutline(path: Array[(Int, Int)], mole: Mole): Unit = {
+    for (pos <- path) {
+      setBlock(pos)(combineColors(JColor.darkGray, mole.areaColor))
+    }
+  }
+  def floodFill(x: Int, y: Int, path: Array[(Int, Int)], mole: Mole): Unit = {
+
+    var maxX: Int = path(0)._1;
+    var minX: Int = path(0)._1;
+    var maxY: Int = path(0)._2;
+    var minY: Int = path(0)._2;
+    for (pos <- path) {
+      val x = pos._1
+      if (x < minX) {
+        minX = x
+      } else if (x > maxX) {
+        maxX = x
+      }
+
+      val y = pos._2
+      if (y < minY) {
+        minY = y
+      } else if (y > maxY) {
+        maxY = y
+      }
+    }
+
+    if (x >= minX && x <= maxX && y >= minY && y <= maxY && !path.contains((x, y))) {
+        setBlock(x, y)(combineColors(JColor.GRAY, mole.areaColor))
+        floodFill(x + 1, y, path, mole)
+        floodFill(x - 1, y, path, mole)
+        floodFill(x, y + 1, path, mole)
+        floodFill(x, y - 1, path, mole)
+    }
+  }
   def fillPath(path: Array[(Int, Int)], mole: Mole): Unit = {
     // find bounding box
     var maxX: Int = path(0)._1;
@@ -105,18 +140,38 @@ class BlockWindow(
           fillMode = !fillMode
         } else if (!path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 011
           if (path.contains(x, y-1)) { // if dir UP
-            lastDirs :+ "UP"
+            lastDirs :+= "UP"
           }
           if (path.contains(x, y+1)) { // if dir DOWN
-            lastDirs :+ "DOWN"
+            lastDirs :+= "DOWN"
           }
+
+          val posIndex = path.indexOf((x, y))
+          var posAfterIndex = posIndex+1
+          if (posAfterIndex == path.length) {
+            posAfterIndex = 0
+          }
+          val posAfter = path (posAfterIndex)
+          var posBeforeIndex = posIndex-1
+          if (posBeforeIndex == -1) {
+            posBeforeIndex = path.length-1
+          }
+          val posBefore = path (posBeforeIndex)
+
+          if ((x+1, y) != posAfter || (x+1, y) != posBefore) {
+            fillMode = !fillMode
+          }
+
         } else if (path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 110
           var currentDirs = Array.empty[String]
+          
+          
+
           if (path.contains(x, y-1)) { // if dir UP
-            currentDirs :+ "UP"
+            currentDirs :+= "UP"
           }
           if (path.contains(x, y+1)) { // if dir DOWN
-            currentDirs :+ "DOWN"
+            currentDirs :+= "DOWN"
           }
           val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
           println(dirsInCommon)
@@ -126,10 +181,24 @@ class BlockWindow(
           }
           lastDirs = Array.empty[String]
 
-        }
+        } else if (path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 111
+          val posIndex = path.indexOf((x, y))
+          var posAfterIndex = posIndex+1
+          if (posAfterIndex == path.length) {
+            posAfterIndex = 0
+          }
+          val posAfter = path (posAfterIndex)
+          var posBeforeIndex = posIndex-1
+          if (posBeforeIndex == -1) {
+            posBeforeIndex = path.length-1
+          }
+          val posBefore = path (posBeforeIndex)
 
-        if (fillMode && lastDirs.length == 0) {
-          setBlock(x, y)(mole.areaColor)
+          if ((x+1, y) != posAfter || (x+1, y) != posBefore) {
+            fillMode = !fillMode
+          }
+        } else if (fillMode && lastDirs.length == 0) {
+          setBlock(x, y)(combineColors(JColor.GRAY, mole.areaColor))
         }
       }
       fillMode = false
