@@ -22,11 +22,7 @@ case class KeyControl(left: String, right: String, up: String, down: String) {
 
 // function for getting all the moles positions in one array
 def getPosFromArray(moles: Array[Mole]): Array[Pos] = {
-  var positions: Array[Pos] = Array()
-  for (mole <- moles) {
-    positions = positions :+ mole.pos
-  }
-  positions
+  moles.map(_.pos)
 }
 
 def combineColors(color1: JColor, color2: JColor): JColor = {
