@@ -133,70 +133,84 @@ class BlockWindow(
 
     // begin filling
     var fillMode = false
+    var longSwitch = false
     var lastDirs = Array.empty[String]
+
+    def getBeforeAfterPos(x: Int, y: Int): (Pos, Pos) = {
+      val posIndex = path.indexOf((x, y))
+      var posAfterIndex = posIndex+1
+      if (posAfterIndex == path.length) {
+        posAfterIndex = 0
+      }
+      val posAfter = path (posAfterIndex)
+      var posBeforeIndex = posIndex-1
+      if (posBeforeIndex == -1) {
+        posBeforeIndex = path.length-1
+      }
+      val posBefore = path (posBeforeIndex)
+      (posBefore, posAfter)
+    }
+    def beginFlow(x: Int, y: Int, posBefore: Pos, posAfter: Pos): Unit = {
+      if ((x, y-1) == posAfter || (x, y-1) == posBefore) {
+        lastDirs :+= "UP"
+      }
+      if ((x, y+1) == posAfter || (x, y+1) == posBefore) {
+        lastDirs :+= "DOWN"
+      }
+      longSwitch = true
+    }
+    def endFlow(x: Int, y: Int, posBefore: Pos, posAfter: Pos): Unit = {
+      var currentDirs = Array.empty[String]
+      if ((x, y-1) == posAfter || (x, y-1) == posBefore) {
+        currentDirs :+= "UP"
+      }
+      if ((x, y+1) == posAfter || (x, y+1) == posBefore) {
+        currentDirs :+= "DOWN"
+      }
+      val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
+      println(dirsInCommon)
+
+      if (dirsInCommon.length == 0) {
+        fillMode = !fillMode
+      }
+      longSwitch = false
+      lastDirs = Array.empty[String]
+    }
+
     for (y <- minY to maxY) {
       for (x <- minX to maxX) {
         if (!path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 010
           fillMode = !fillMode
         } else if (!path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 011
-          if (path.contains(x, y-1)) { // if dir UP
-            lastDirs :+= "UP"
-          }
-          if (path.contains(x, y+1)) { // if dir DOWN
-            lastDirs :+= "DOWN"
-          }
 
-          val posIndex = path.indexOf((x, y))
-          var posAfterIndex = posIndex+1
-          if (posAfterIndex == path.length) {
-            posAfterIndex = 0
-          }
-          val posAfter = path (posAfterIndex)
-          var posBeforeIndex = posIndex-1
-          if (posBeforeIndex == -1) {
-            posBeforeIndex = path.length-1
-          }
-          val posBefore = path (posBeforeIndex)
+          val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
-          if ((x+1, y) != posAfter || (x+1, y) != posBefore) {
+          beginFlow(x, y, posBefore, posAfter)
+
+          if (!((x+1, y) == posAfter || (x+1, y) == posBefore)) {
             fillMode = !fillMode
+            longSwitch = false
+            lastDirs = Array.empty[String]
           }
 
         } else if (path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 110
-          var currentDirs = Array.empty[String]
           
-          
+          val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
-          if (path.contains(x, y-1)) { // if dir UP
-            currentDirs :+= "UP"
-          }
-          if (path.contains(x, y+1)) { // if dir DOWN
-            currentDirs :+= "DOWN"
-          }
-          val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
-          println(dirsInCommon)
-
-          if (dirsInCommon.length == 0) {
-            fillMode = !fillMode
-          }
-          lastDirs = Array.empty[String]
+          endFlow(x, y, posBefore, posAfter)
 
         } else if (path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 111
-          val posIndex = path.indexOf((x, y))
-          var posAfterIndex = posIndex+1
-          if (posAfterIndex == path.length) {
-            posAfterIndex = 0
-          }
-          val posAfter = path (posAfterIndex)
-          var posBeforeIndex = posIndex-1
-          if (posBeforeIndex == -1) {
-            posBeforeIndex = path.length-1
-          }
-          val posBefore = path (posBeforeIndex)
+          
+          val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
-          if ((x+1, y) != posAfter || (x+1, y) != posBefore) {
-            fillMode = !fillMode
+          if (!longSwitch) {
+            beginFlow(x, y, posBefore, posAfter)
           }
+
+          if (!((x+1, y) == posAfter || (x+1, y) == posBefore)) {
+            endFlow(x, y, posBefore, posAfter)
+          }
+
         } else if (fillMode && lastDirs.length == 0) {
           setBlock(x, y)(combineColors(JColor.GRAY, mole.areaColor))
         }
