@@ -16,8 +16,11 @@ class Mole(
   override def toString: String = {
     s"Mole[name=$name, pos=$pos, dir=$dir, points=$area]"
   }
-  def modifyArea(pos: Pos): Unit = {
+  def addArea(pos: Pos): Unit = {
     this.area :+= pos;
+  }
+  def removeArea(pos: Pos): Unit = {
+    //this.area :+= pos;
   }
   /** Om keyControl.has(key) så uppdateras riktningen dir enligt keyControl */
   def setDir(key: String): Unit = {
@@ -47,7 +50,7 @@ class Mole(
     if (prevColor != areaColor) {
       if (!currentPath.contains(pos)) {
         currentPath :+= pos;
-        println("added: "+pos)
+        //println("added: "+pos)
       }
     }
   }

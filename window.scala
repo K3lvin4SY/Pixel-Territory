@@ -76,40 +76,64 @@ class BlockWindow(
   }
   def fillPathOutline(path: Array[(Int, Int)], mole: Mole): Unit = {
     for (pos <- path) {
-      setBlock(pos)(combineColors(JColor.darkGray, mole.areaColor))
+      setBlock(pos)(mole.areaColor)
+      mole.addArea(pos)
     }
   }
-  def floodFill(x: Int, y: Int, path: Array[(Int, Int)], mole: Mole): Unit = {
+  def findRemainingPath(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
+    class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
 
-    var maxX: Int = path(0)._1;
-    var minX: Int = path(0)._1;
-    var maxY: Int = path(0)._2;
-    var minY: Int = path(0)._2;
-    for (pos <- path) {
-      val x = pos._1
-      if (x < minX) {
-        minX = x
-      } else if (x > maxX) {
-        maxX = x
+      def isSolved(goalPos: Pos): Boolean = {
+        (distance(goalPos) == 1)
       }
 
-      val y = pos._2
-      if (y < minY) {
-        minY = y
-      } else if (y > maxY) {
-        maxY = y
+      def distance(goalPos: Pos): Int = {
+        ( (lastMove._1 - goalPos._1).abs + (lastMove._2 - goalPos._2).abs )
       }
     }
 
-    if (x >= minX && x <= maxX && y >= minY && y <= maxY && !path.contains((x, y))) {
-        setBlock(x, y)(combineColors(JColor.GRAY, mole.areaColor))
-        floodFill(x + 1, y, path, mole)
-        floodFill(x - 1, y, path, mole)
-        floodFill(x, y + 1, path, mole)
-        floodFill(x, y - 1, path, mole)
+    val goalPos = path.head
+    val initialPath = Array(path.last)
+
+    var openSet = Array.empty[PathNode]
+    var closedSet = Array.empty[PathNode]
+
+    val initialNode = new PathNode(initialPath, path.last, null, 0)
+    openSet :+= initialNode
+
+    var pathFound = false
+    var pathToBeAdded = Array.empty[Pos]
+    while (openSet.length > 0 && !pathFound) {
+      openSet = openSet.sortBy(_.distance(goalPos))
+      val currentNode = openSet.head
+      openSet = openSet.tail
+      closedSet :+= currentNode
+
+      if (currentNode.isSolved(goalPos)) {
+        // exit - the path has been found
+        pathFound = true
+        pathToBeAdded = currentNode.pathState.init
+      } else {
+        val dirOptions = Array((1, 0), (-1, 0), (0, 1), (0, -1))
+
+        for (dirOption <- dirOptions) {
+          val nextPossiblePos = (currentNode.lastMove._1 + dirOption._1, currentNode.lastMove._2 + dirOption._2)
+          if (area.contains(nextPossiblePos)) {
+            val updatedPath = currentNode.pathState :+ nextPossiblePos
+            val newMove = nextPossiblePos
+            val newDepth = currentNode.depth + 1
+            val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth)
+            openSet :+= newNode
+          }
+        }
+      }
     }
+
+    pathToBeAdded
   }
-  def fillPath(path: Array[(Int, Int)], mole: Mole): Unit = {
+  def fillPath(molePath: Array[Pos], mole: Mole): Unit = {
+    val path = molePath ++ findRemainingPath(molePath, mole.area)
+
     // find bounding box
     var maxX: Int = path(0)._1;
     var minX: Int = path(0)._1;
@@ -168,7 +192,7 @@ class BlockWindow(
         currentDirs :+= "DOWN"
       }
       val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
-      println(dirsInCommon)
+      //println(dirsInCommon)
 
       if (dirsInCommon.length == 0) {
         fillMode = !fillMode
@@ -176,7 +200,6 @@ class BlockWindow(
       longSwitch = false
       lastDirs = Array.empty[String]
     }
-
     for (y <- minY to maxY) {
       for (x <- minX to maxX) {
         if (!path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 010
@@ -212,7 +235,10 @@ class BlockWindow(
           }
 
         } else if (fillMode && lastDirs.length == 0) {
-          setBlock(x, y)(combineColors(JColor.GRAY, mole.areaColor))
+          if (!mole.area.contains(x, y)) {
+            setBlock(x, y)(mole.areaColor)
+            mole.addArea(x, y)
+          }
         }
       }
       fillMode = false

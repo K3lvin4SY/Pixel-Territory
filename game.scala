@@ -94,7 +94,7 @@ class Game(
         if (mole.area.contains(mole.pos)) {
           if (mole.currentPath.length > 0) {
             // fill path
-            println("Printed")
+            //println("Printed")
             window.fillPathOutline(mole.currentPath, mole)
             window.fillPath(mole.currentPath, mole)
             mole.currentPath = Array.empty[Pos]
