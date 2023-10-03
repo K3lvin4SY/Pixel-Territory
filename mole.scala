@@ -48,7 +48,7 @@ class Mole(
   def move(): Unit = {
     pos = nextPos;
     if (prevColor != areaColor) {
-      if (!currentPath.contains(pos)) {
+      if (!currentPath.contains(pos) && !area.contains(pos)) {
         currentPath :+= pos;
         //println("added: "+pos)
       }

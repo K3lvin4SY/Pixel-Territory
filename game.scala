@@ -94,9 +94,9 @@ class Game(
         if (mole.area.contains(mole.pos)) {
           if (mole.currentPath.length > 0) {
             // fill path
-            //println("Printed")
-            window.fillPathOutline(mole.currentPath, mole)
+            println("Printed")
             window.fillPath(mole.currentPath, mole)
+            window.fillPathOutline(mole.currentPath, mole)
             mole.currentPath = Array.empty[Pos]
           }
         } else {
@@ -104,10 +104,12 @@ class Game(
         }
         if (mole.area.contains(mole.pos)) { // if it is moles territory
           window.setBlock(mole.pos)(mole.areaColor)
+          //window.setBlock(mole.pos)(mole.prevColor)
         } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
           window.setBlock(mole.pos)(mole.prevColor)
         } else {
           window.setBlock(mole.pos)(combineColors(mole.areaColor, mole.prevColor))
+          //window.setBlock(mole.pos)(mole.prevColor)
         }
       }
       if (tempPrevColor != mole.color) {
