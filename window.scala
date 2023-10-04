@@ -81,7 +81,7 @@ class BlockWindow(
       mole.addArea(pos)
     }
   }
-  def findRemainingPath(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
+  def findRemainingPathV2(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
     class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
 
       def isSolved(goalPos: Pos): Boolean = {
@@ -112,15 +112,89 @@ class BlockWindow(
       closedSet :+= currentNode
 
       // start test animation
-      /*for (testPos <- currentNode.pathState) {
+      for (testPos <- currentNode.pathState) {
         import GameProperties.Color.sky
         setBlock(testPos)(combineColors(JColor.black, sky))
       }
-      //Thread.sleep(100)
+      Thread.sleep(150)
       for (testPos <- currentNode.pathState) {
         import GameProperties.Color.sky
         setBlock(testPos)(sky)
-      }*/
+      }
+      // end test animation
+
+      if (currentNode.isSolved(goalPos)) {
+        // exit - the path has been found
+        pathFound = true
+        pathToBeAdded = currentNode.pathState.tail
+      } else {
+        val dirOptions = Array((1, 0), (-1, 0), (0, 1), (0, -1))
+        val dirOptionsDiagonal = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+        val dirOptionsLbl = Array("E", "W", "S", "N")
+
+        var tempDirs = ""
+        for (dirOption <- dirOptions) {
+          val nextPossiblePos = (currentNode.lastMove._1 + dirOption._1, currentNode.lastMove._2 + dirOption._2)
+          if (area.contains(nextPossiblePos) && !currentNode.pathState.contains(nextPossiblePos)) {
+            val nonAreaNear = dirOptionsDiagonal.map(diaDir => area.contains(nextPossiblePos._1 + diaDir._1, nextPossiblePos._2 + diaDir._2)).contains(false)
+            if (nonAreaNear) {
+              val updatedPath = currentNode.pathState :+ nextPossiblePos
+              tempDirs += dirOptionsLbl(dirOptions.indexOf(dirOption))+" | "
+              if (!closedSet.map(_.pathState).contains(updatedPath)) {
+                val newMove = nextPossiblePos
+                val newDepth = currentNode.depth + 1
+                val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth)
+                openSet :+= newNode
+              }
+            }
+          }
+        }
+        //println(tempDirs)
+      }
+    }
+
+    pathToBeAdded
+  }
+  def findRemainingPath(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
+    class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
+
+      def isSolved(goalPos: Pos): Boolean = {
+        (distance(goalPos) == 1)
+      }
+
+      def distance(goalPos: Pos): Int = {
+        ( (lastMove._1 - goalPos._1).abs + (lastMove._2 - goalPos._2).abs )
+      }
+    }
+
+    val goalPos = path.head
+    val initialPath = Array(path.last)
+
+    var openSet = Array.empty[PathNode]
+    var closedSet = Array.empty[PathNode]
+
+    val initialNode = new PathNode(initialPath, path.last, null, 0)
+    openSet :+= initialNode
+
+    var pathFound = false
+    var pathToBeAdded = Array.empty[Pos]
+    while (openSet.length > 0 && !pathFound) {
+      //openSet = openSet.sortBy(_.distance(goalPos))
+      openSet = openSet.sortBy(node => /*node.depth + */node.distance(goalPos))
+      val currentNode = openSet.head
+      openSet = openSet.tail
+      closedSet :+= currentNode
+
+      // start test animation
+      for (testPos <- currentNode.pathState) {
+        import GameProperties.Color.sky
+        setBlock(testPos)(combineColors(JColor.black, sky))
+      }
+      Thread.sleep(150)
+      for (testPos <- currentNode.pathState) {
+        import GameProperties.Color.sky
+        setBlock(testPos)(sky)
+      }
       // end test animation
 
       if (currentNode.isSolved(goalPos)) {
@@ -152,7 +226,7 @@ class BlockWindow(
     pathToBeAdded
   }
   def fillPath(molePath: Array[Pos], mole: Mole): Unit = {
-    val areaPath = findRemainingPath(molePath, mole.area)
+    val areaPath = findRemainingPathV2(molePath, mole.area)
     val path = molePath ++ areaPath
     for ((xP, yP) <- areaPath) {
       setBlock(xP, yP)(combineColors(JColor.red, mole.areaColor))
