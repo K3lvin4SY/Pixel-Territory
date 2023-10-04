@@ -94,7 +94,7 @@ class Game(
         if (mole.area.contains(mole.pos)) {
           if (mole.currentPath.length > 0) {
             // fill path
-            println("Printed")
+            //println("Printed")
             window.fillPath(mole.currentPath, mole)
             window.fillPathOutline(mole.currentPath, mole)
             mole.currentPath = Array.empty[Pos]
@@ -121,7 +121,7 @@ class Game(
 
 
   var quit = false
-  val delayMillis = 180
+  val delayMillis = 80
 
   def gameLoop(): Unit = {
     while (!quit) {
