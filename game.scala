@@ -105,7 +105,7 @@ class Game(
         for (otherMole <- moles) {
           if (otherMole.currentPath.contains(mole.nextPos)) {
             // /kill otherMole
-            otherMole.die(window)
+            otherMole.die(window, moles.filter(_!=otherMole))
           }
         }
       }
@@ -113,10 +113,10 @@ class Game(
       for (otherMole <- moles.filter(_!=mole)) {
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
-            otherMole.die(window)
+            otherMole.die(window, moles.filter(_!=otherMole))
           }
           if (mole.currentPath.length > 0) {
-            mole.die(window)
+            mole.die(window, moles.filter(_!=mole))
           }
         }
       }
@@ -132,9 +132,8 @@ class Game(
             mole.currentPath = Array.empty[Pos]
             mole.currentPathColor = Array.empty[JColor]
           }
-        } else {
-
         }
+        
         if (mole.area.contains(mole.pos)) { // if it is moles territory
           window.setBlock(mole.pos)(mole.areaColor)
           //window.setBlock(mole.pos)(mole.prevColor)

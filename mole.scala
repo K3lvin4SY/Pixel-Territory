@@ -26,9 +26,18 @@ class Mole(
     area = area.filter(_!=pos)
   }
 
-  def die(window: BlockWindow): Unit = {
+  def die(window: BlockWindow, otherMoles: Array[Mole]): Unit = {
     for (pos <- area) {
       window.setBlock(pos)(JColor.white)
+    }
+    for (otherMole <- otherMoles) {
+      for (otherPathPos <- otherMole.currentPath) {
+        if (area.contains(otherPathPos)) {
+          val index = otherMole.currentPath.indexOf(otherPathPos)
+          otherMole.currentPathColor(index) = JColor.white
+          window.setBlock(otherPathPos)(combineColors(otherMole.areaColor, JColor.white))
+        }
+      }
     }
     area = Array.empty[Pos]
     for ((pos, color) <- currentPath.zip(currentPathColor)) {
