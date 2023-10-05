@@ -172,6 +172,10 @@ class Game(
           gameover(mole);
         }
       }
+      if (moles.filter(mole => !mole.eliminated).length == 1) { // all but one eliminated
+        quit = true
+        gameover(moles.filter(mole => !mole.eliminated)(0))
+      }
       val elapsedMillis = (System.currentTimeMillis - t0).toInt
       Thread.sleep((delayMillis - elapsedMillis) max 0)
     }
