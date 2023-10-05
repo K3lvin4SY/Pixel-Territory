@@ -6,22 +6,42 @@ class Mole(
   var dir: (Int, Int),
   val color: java.awt.Color,
   val areaColor: java.awt.Color,
-  val keyControl: KeyControl
+  val keyControl: KeyControl,
+  val game: Game
 ) {
   var area = Array.empty[Pos]
   var lastDir = (0,0)
   var pos = (-5, -5)
   var currentPath = Array.empty[Pos]
+  var currentPathColor = Array.empty[JColor]
   var prevColor = java.awt.Color.white
   override def toString: String = {
     s"Mole[name=$name, pos=$pos, dir=$dir, points=$area]"
   }
-  def addArea(pos: Pos): Unit = {
-    this.area :+= pos;
+  def addArea(poses: Array[Pos]): Unit = {
+    game.moleWillClaimPos(poses, this)
+    area ++= poses;
   }
   def removeArea(pos: Pos): Unit = {
-    //this.area :+= pos;
+    area = area.filter(_!=pos)
   }
+
+  def die(window: BlockWindow): Unit = {
+    for (pos <- area) {
+      window.setBlock(pos)(JColor.white)
+    }
+    area = Array.empty[Pos]
+    for ((pos, color) <- currentPath.zip(currentPathColor)) {
+      //val colorResult = window.getBlock(pos)
+      //window.setBlock(pos)(getcolorFactor(areaColor, colorResult))
+      window.setBlock(pos)(color)
+    }
+    currentPath = Array.empty[Pos]
+    currentPathColor = Array.empty[JColor]
+    window.setBlock(pos)(prevColor)
+    spawn(window)
+  }
+
   /** Om keyControl.has(key) så uppdateras riktningen dir enligt keyControl */
   def setDir(key: String): Unit = {
     if (keyControl.has(key) || key == "FORCE") {
@@ -50,6 +70,7 @@ class Mole(
     if (prevColor != areaColor) {
       if (!currentPath.contains(pos) && !area.contains(pos)) {
         currentPath :+= pos;
+        currentPathColor :+= prevColor;
         //println("added: "+pos)
       }
     }
@@ -82,6 +103,11 @@ class Mole(
       pos = getNewRandomPos()
       arePosCloseToTerritory(window, pos, 3)
     do()
+    /*if (name == "LEFT") {
+      pos = (10, 5)
+    } else {
+      pos = (10, 15)
+    }*/
     // if cannot spawn, then lose. (IMPLEMENT)
     for (xDiff <- -1 to 1) {
       for (yDiff <- -1 to 1) {

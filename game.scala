@@ -43,8 +43,8 @@ class Game(
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
 
-  val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"))
-  val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"))
+  val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"), this)
+  val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
   val moles = Array(leftMole, rightMole);
 
   def drawWorld(): Unit = {
@@ -74,6 +74,19 @@ class Game(
     window.updatePanel(moles)
   }
 
+  def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {
+    var amount = 0
+    for (otherMole <- moles.filter(_!=mole)) {
+      for (otherPos <- otherMole.area) {
+        if (poses.contains(otherPos)) {
+          otherMole.removeArea(otherPos)
+          amount += 1
+        }
+      }
+    }
+    println(amount)
+  }
+
   def updateMoles(mole: Mole): Unit = {// update, draw new, erase old
     mole.isMoleOutOfBounds() // checking if mole will be out of bounds
     // draws the new mole block
@@ -84,10 +97,26 @@ class Game(
       mole.modifyEnergy(-1);
     }*/
 
-    
-
     if (!windowSize.isPosOutOfBounds(mole.nextPos)) {
       val tempPrevColor = window.getBlock(mole.nextPos);
+      if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor)) {
+        for (otherMole <- moles) {
+          if (otherMole.currentPath.contains(mole.nextPos)) {
+            // /kill otherMole
+            otherMole.die(window)
+          }
+        }
+      }
+      for (otherMole <- moles.filter(_!=mole)) {
+        if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
+          if (otherMole.currentPath.length > 0) {
+            otherMole.die(window)
+          }
+          if (mole.currentPath.length > 0) {
+            mole.die(window)
+          }
+        }
+      }
       window.setBlock(mole.nextPos)(mole.color)
 
       if (window.getBlock(mole.nextPos) == mole.color && mole.dir != (0, 0)) {
@@ -96,8 +125,9 @@ class Game(
             // fill path
             //println("Printed")
             window.fillPath(mole.currentPath, mole)
-            window.fillPathOutline(mole.currentPath, mole)
+            //window.fillPathOutline(mole.currentPath, mole)
             mole.currentPath = Array.empty[Pos]
+            mole.currentPathColor = Array.empty[JColor]
           }
         } else {
 
@@ -113,7 +143,11 @@ class Game(
         }
       }
       if (tempPrevColor != mole.color) {
-        mole.prevColor = tempPrevColor
+        if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor) && !moles.map(_.color).contains(tempPrevColor)) {
+          mole.prevColor = JColor.white
+        } else {
+          mole.prevColor = tempPrevColor
+        }
       }
     }
     mole.move()

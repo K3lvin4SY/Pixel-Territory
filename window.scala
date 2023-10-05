@@ -74,12 +74,15 @@ class BlockWindow(
     val rightBottomPos = (leftTopPos._1 + size._1, leftTopPos._2 + size._2 )
     eraseBlocks(leftTopPos, rightBottomPos)(colorY => colorFunction(colorY));
   }
-  def fillPathOutline(path: Array[(Int, Int)], mole: Mole): Unit = {
+  def fillPathOutline(path: Array[(Int, Int)], mole: Mole, area: Array[Pos]): Unit = {
+    var areaToAdd = area.clone()
     for (pos <- path) {
       //setBlock(pos)(combineColors(JColor.lightGray ,mole.areaColor))
       setBlock(pos)(mole.areaColor)
-      mole.addArea(pos)
+      areaToAdd :+= pos;
+      //mole.addArea(pos)
     }
+    mole.addArea(areaToAdd)
   }
   def findRemainingPathV2(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
     val startTime = System.nanoTime()
@@ -117,7 +120,7 @@ class BlockWindow(
         import GameProperties.Color.sky
         setBlock(testPos)(combineColors(JColor.black, sky))
       }
-      //Thread.sleep(150)
+      Thread.sleep(150)
       for (testPos <- currentNode.pathState) {
         import GameProperties.Color.sky
         setBlock(testPos)(sky)
@@ -188,6 +191,7 @@ class BlockWindow(
     }
 
     // begin filling
+    var areaToAdd = Array.empty[Pos]
     var fillMode = false
     var longSwitch = false
     var lastDirs = Array.empty[String]
@@ -270,13 +274,15 @@ class BlockWindow(
           if (!mole.area.contains(x, y)) {
             //setBlock(x, y)(combineColors(JColor.gray, mole.areaColor))
             setBlock(x, y)(mole.areaColor)
-            mole.addArea(x, y)
+            areaToAdd :+= (x, y)
+            //mole.addArea(x, y)
           }
         }
       }
       fillMode = false
       lastDirs = Array.empty[String]
     }
+    fillPathOutline(molePath, mole, areaToAdd)
   }
 }
 
