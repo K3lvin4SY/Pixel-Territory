@@ -99,7 +99,9 @@ class Game(
 
     if (!windowSize.isPosOutOfBounds(mole.nextPos)) {
       val tempPrevColor = window.getBlock(mole.nextPos);
-      if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor)) {
+
+      // tail gets cut - kill
+      if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor) && !moles.map(_.color).contains(tempPrevColor)) {
         for (otherMole <- moles) {
           if (otherMole.currentPath.contains(mole.nextPos)) {
             // /kill otherMole
@@ -107,6 +109,7 @@ class Game(
           }
         }
       }
+      // collision between moles - kill
       for (otherMole <- moles.filter(_!=mole)) {
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
