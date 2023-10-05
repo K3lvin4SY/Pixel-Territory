@@ -82,6 +82,7 @@ class BlockWindow(
     }
   }
   def findRemainingPathV2(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
+    val startTime = System.nanoTime()
     class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
 
       def isSolved(goalPos: Pos): Boolean = {
@@ -152,7 +153,9 @@ class BlockWindow(
         //println(tempDirs)
       }
     }
-
+    val endTime = System.nanoTime()
+    val timeInMs = (endTime - startTime) / 1000000
+    println(timeInMs+" ms")
     pathToBeAdded
   }
   def fillPath(molePath: Array[Pos], mole: Mole): Unit = {
