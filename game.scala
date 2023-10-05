@@ -55,15 +55,10 @@ class Game(
     window.updatePanel(moles)
   }
 
-  def gameover(mole: Mole, winner: Boolean): Unit = {
-    var winningPlayer: Mole = mole;
-    if (!winner) {
-      val moleIndex = moles.indexOf(mole)
-      winningPlayer = moles(1 - moleIndex)
-    }
-    window.setRectangle(0, 0)(windowSize.width, windowSize.height)(mole.color)
+  def gameover(mole: Mole): Unit = {
+    window.setRectangle(0, 0)(windowSize.width, windowSize.height)(mole.areaColor)
     window.write(
-      text = winningPlayer.name+" MOLE is the Winner!",
+      text = mole.name+" MOLE is the Winner!",
       pos = (4, 25),
       color = Color.black,
       textSize = 30
@@ -80,6 +75,12 @@ class Game(
       for (otherPos <- otherMole.area) {
         if (poses.contains(otherPos)) {
           otherMole.removeArea(otherPos)
+          // whole area body gets eaten
+          if (otherMole.area.length == 0) {
+            val tempMoleDiePos = otherMole.pos
+            otherMole.die(window, moles.filter(_!=otherMole))
+            window.setBlock(tempMoleDiePos)(mole.areaColor)
+          }
           amount += 1
         }
       }
@@ -168,7 +169,7 @@ class Game(
         updateGeneral(); // updates text and other game mechanics
         if (mole.area.length >= (windowSize.width*windowSize.height) ) {
           quit = true;
-          gameover(mole, true);
+          gameover(mole);
         }
       }
       val elapsedMillis = (System.currentTimeMillis - t0).toInt
