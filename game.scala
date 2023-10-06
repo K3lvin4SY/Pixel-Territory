@@ -79,6 +79,7 @@ class Game(
           if (otherMole.area.length == 0) {
             val tempMoleDiePos = otherMole.pos
             otherMole.die(window, moles.filter(_!=otherMole))
+            mole.killed(otherMole)
             window.setBlock(tempMoleDiePos)(mole.areaColor)
           }
           amount += 1
@@ -107,6 +108,7 @@ class Game(
           if (otherMole.currentPath.contains(mole.nextPos)) {
             // /kill otherMole
             otherMole.die(window, moles.filter(_!=otherMole))
+            mole.killed(otherMole)
           }
         }
       }
@@ -115,9 +117,11 @@ class Game(
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
             otherMole.die(window, moles.filter(_!=otherMole))
+            mole.killed(otherMole)
           }
           if (mole.currentPath.length > 0) {
             mole.die(window, moles.filter(_!=mole))
+            otherMole.killed(mole)
           }
         }
       }

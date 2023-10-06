@@ -28,6 +28,13 @@ class Mole(
   def removeArea(pos: Pos): Unit = {
     area = area.filter(_!=pos)
   }
+  def killed(mole: Mole): Unit = {
+    if (mole != this) {
+      kills += 1
+    } else {
+      suicide += 1
+    }
+  }
 
   def die(window: BlockWindow, otherMoles: Array[Mole]): Unit = {
     for (pos <- area) {
