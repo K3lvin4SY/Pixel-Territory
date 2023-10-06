@@ -2,7 +2,8 @@ package moleTerritory
 import java.awt.{Color as JColor}
 
 object GameProperties {
-  val windowSize = WindowSize(50, 50, 21)
+  //val windowSize = WindowSize(Array(0, 0, 0, 0), 50, 50, 21)
+  val windowSize = WindowSize(Array(5, 1, 2, 2), 50, 50, 21)
   val windowTitle = "MOLE TERRITORY"
   object Color {
     val black = new JColor(0, 0, 0)
@@ -29,7 +30,7 @@ object GameProperties {
   
   def isPosOutOfPlayingField(pos: Pos): Boolean = {
     val (xPos, yPos) = pos;
-    !((0 to windowSize.width-1).contains(xPos) && (0 to windowSize.height-1).contains(yPos));
+    !((windowSize.padLef to windowSize.padLef+windowSize.width-1).contains(xPos) && (windowSize.padTop to windowSize.padTop+windowSize.height-1).contains(yPos));
   }
 }
 
@@ -48,7 +49,7 @@ class Game(
   val moles = Array(leftMole, rightMole);
 
   def drawWorld(): Unit = {
-    window.setRectangle(0, 0)(windowSize.size)(Color.white)
+    window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.size)(Color.white)
     for (mole <- moles) {
       mole.spawn(window)
     }

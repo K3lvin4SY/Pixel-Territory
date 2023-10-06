@@ -64,8 +64,8 @@ class BlockWindow(
   def setRectangle(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
     val (xPos, yPos) = leftTopPos;
     val (width, height) = size;
-    for (y <- yPos to yPos+height) {
-      for (x <- xPos to xPos+width) {
+    for (y <- yPos to yPos+height-1) {
+      for (x <- xPos to xPos+width-1) {
         setBlock(x,y)(color)
       }
     }
@@ -297,22 +297,27 @@ object BlockWindow {
 }
 
 class WindowSize(
-    val width: Int = 30,
-    val height: Int = 50,
-    val blockSize: Int
+  val padding: Array[Int] = Array.fill(4)(0), //1: top //2: bottom //3: left //4: right
+  val width: Int = 30,
+  val height: Int = 50,
+  val blockSize: Int
 ) {
+  val padTop = padding(0)
+  val padBot = padding(1)
+  val padLef = padding(2)
+  val padRig = padding(3)
 
-    def windowWidth: Int = {
-      blockSize*width
-    }
-    def windowHeight: Int = {
-      blockSize*height
-    }
-    def size: Pos = {
-      (width, height)
-    }
-    def isPosOutOfBounds(pos: Pos): Boolean = {
-      val (xPos, yPos) = pos;
-      !((0 to width-1).contains(xPos) && (0 to height-1).contains(yPos));
-    }
+  def windowWidth: Int = {
+    blockSize*(width+padLef+padRig)
+  }
+  def windowHeight: Int = {
+    blockSize*(height+padTop+padBot)
+  }
+  def size: Pos = {
+    (width, height)
+  }
+  def isPosOutOfBounds(pos: Pos): Boolean = {
+    val (xPos, yPos) = pos;
+    !((padLef to padLef+width-1).contains(xPos) && (padTop to padTop+height-1).contains(yPos));
+  }
 }
