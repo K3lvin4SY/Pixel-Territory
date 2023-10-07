@@ -9,7 +9,7 @@ class BlockWindow(
 ) {
   import introprog.PixelWindow
 
-  val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, "BlockBattle")
+  val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle)
 
   def setBlock(pos: Pos)(color: JColor = JColor.gray): Unit = {
     val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret
@@ -22,13 +22,18 @@ class BlockWindow(
   }
 
   def updatePanel(moles: Array[Mole]): Unit = {
-    import GameProperties.Color.black;
-    import GameProperties.backgroundColorAtDepth;
-    eraseBlocks((0, 0), (30, 1))(y => backgroundColorAtDepth(y))
-    write(moles(0).name + " MOLE", (0,0), black)
-    write(moles(1).name + " MOLE", (15,0), black)
-    write("Area: " + moles(0).area.length, (0,1), black)
-    write("Area: " + moles(1).area.length, (15,1), black)
+    import GameProperties.Color.*;
+    import windowSize.*;
+    eraseBlocks(((padLef/8).toInt, padTop), (padLef-1, padTop+height))(background)
+    eraseBlocks(((padLef+width+(padRig/8).toInt), padTop), ((padLef+width+padRig)-1, padTop+height))(background)
+    write(moles(0).name + " MOLE", ((padLef/8).toInt, padTop), white, blockSize*2)
+    write(moles(1).name + " MOLE", ((padLef+width+(padRig/8).toInt), padTop), white, blockSize*2)
+    write("Area: " + moles(0).area.length, ((padLef/8).toInt, padTop+3), white, (blockSize*1.5).toInt)
+    write("Area: " + moles(1).area.length, ((padLef+width+(padRig/8).toInt), padTop+3), white, (blockSize*1.5).toInt)
+    write("Kills: " + moles(0).kills, ((padLef/8).toInt, padTop+3*2), white, (blockSize*1.5).toInt)
+    write("Kills: " + moles(1).kills, ((padLef+width+(padRig/8).toInt), padTop+3*2), white, (blockSize*1.5).toInt)
+    write("Suicides: " + moles(0).suicide, ((padLef/8).toInt, padTop+3*3), white, (blockSize*1.5).toInt)
+    write("Suicides: " + moles(1).suicide, ((padLef+width+(padRig/8).toInt), padTop+3*3), white, (blockSize*1.5).toInt)
   }
 
   def write(
@@ -59,6 +64,16 @@ class BlockWindow(
         setBlock(x, y)(colorFunction(y))
       }
     }
+  }
+  def eraseBlocks(pos1: Pos, pos2: Pos)(color: JColor): Unit = {
+    /*val (x1, y1) = pos1;
+    val (x2, y2) = pos2;
+    for (x <- x1 to x2) {
+      for (y <- y1 to y2) {
+        setBlock(x, y)(color)
+      }
+    }*/
+    window.fill(pos1._1*windowSize.blockSize, pos1._2*windowSize.blockSize, (pos1._1-pos2._1).abs *windowSize.blockSize, (pos1._2-pos2._2).abs *windowSize.blockSize, color = color)
   }
 
   def setRectangle(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
@@ -315,6 +330,15 @@ class WindowSize(
   }
   def size: Pos = {
     (width, height)
+  }
+  def size(xDiff: Int, yDiff: Int): Pos = {
+    (width+xDiff*2, height+yDiff*2)
+  }
+  def windowSize: Pos = {
+    (width+padLef+padRig, height+padTop+padBot)
+  }
+  def windowSize(xDiff: Int, yDiff: Int): Pos = {
+    (width+padLef+padRig-xDiff*2, height+padTop+padBot-yDiff*2)
   }
   def isPosOutOfBounds(pos: Pos): Boolean = {
     val (xPos, yPos) = pos;

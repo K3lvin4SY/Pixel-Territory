@@ -3,7 +3,7 @@ import java.awt.{Color as JColor}
 
 object GameProperties {
   //val windowSize = WindowSize(Array(0, 0, 0, 0), 50, 50, 21)
-  val windowSize = WindowSize(Array(5, 1, 2, 2), 50, 50, 21)
+  val windowSize = WindowSize(Array(5, 5, 20, 20), 50, 50, 21)
   val windowTitle = "MOLE TERRITORY"
   object Color {
     val black = new JColor(0, 0, 0)
@@ -15,6 +15,15 @@ object GameProperties {
     val sky = new JColor(140, 190, 255)
     val worm = new JColor(238, 121, 194)
     val gold = new JColor(255, 213, 0)
+    val bgGray300 = new JColor(209, 213, 219);
+    val bgGray400 = new JColor(156, 163, 175);
+    val bgGray500 = new JColor(107, 114, 128);
+    val bgGray600 = new JColor(75, 85, 99);
+    val bgGray700 = new JColor(55, 65, 81);
+    val bgGray800 = new JColor(31, 41, 55);
+    val bgGray900 = new JColor(17, 24, 39);
+    val background = bgGray600
+    val backgroundEdge = bgGray700
   }
 /** Used with the different ranges and eraseBlocks */
   def backgroundColorAtDepth(y: Int): JColor = {
@@ -35,8 +44,8 @@ object GameProperties {
 }
 
 class Game(
-  val leftPlayerName: String = "LEFT",
-  val rightPlayerName: String = "RIGHT"
+  val leftPlayerName: String = "YELLOW",
+  val rightPlayerName: String = "BLUE"
 ) {
   import GameProperties.* // direkt tillgång till namn på medlemmar i kompanjon
   val window = new BlockWindow(windowSize, windowTitle)
@@ -49,6 +58,9 @@ class Game(
   val moles = Array(leftMole, rightMole);
 
   def drawWorld(): Unit = {
+    window.setRectangle(0, 0)(windowSize.windowSize)(Color.backgroundEdge)
+    window.setRectangle(1, 1)(windowSize.windowSize(1, 1))(Color.background)
+    window.setRectangle(windowSize.padLef-1, windowSize.padTop-1)(windowSize.size(1, 1))(Color.backgroundEdge)
     window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.size)(Color.white)
     for (mole <- moles) {
       mole.spawn(window)
@@ -57,10 +69,10 @@ class Game(
   }
 
   def gameover(mole: Mole): Unit = {
-    window.setRectangle(0, 0)(windowSize.width, windowSize.height)(mole.areaColor)
+    window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.width, windowSize.height)(mole.areaColor)
     window.write(
       text = mole.name+" MOLE is the Winner!",
-      pos = (4, 25),
+      pos = (windowSize.padLef+4, windowSize.padTop+25),
       color = Color.black,
       textSize = 30
     )

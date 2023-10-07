@@ -132,8 +132,8 @@ class Mole(
       notPossiblePoses = notPossiblePoses ++ otherMole.area
     }
     import GameProperties.windowSize.*
-    for (xPos <- 1 to width-2) {
-      for (yPos <- 1 to height-2) {
+    for (xPos <- padLef+1 to padLef+width-2) {
+      for (yPos <- padTop+1 to padTop+height-2) {
         if (!notPossiblePoses.contains(xPos, yPos)) {
           if (!arePosCloseToAnyTerritory(xPos, yPos)(notPossiblePoses, 3)) {
             possiblePoses :+= (xPos, yPos)
