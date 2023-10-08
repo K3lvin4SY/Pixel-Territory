@@ -15,6 +15,7 @@ object GameProperties {
     val sky = new JColor(140, 190, 255)
     val worm = new JColor(238, 121, 194)
     val gold = new JColor(255, 213, 0)
+    val green = new JColor(118, 247, 82)
     val bgGray300 = new JColor(209, 213, 219);
     val bgGray400 = new JColor(156, 163, 175);
     val bgGray500 = new JColor(107, 114, 128);
@@ -54,8 +55,9 @@ class Game(
   val y = 0;
 
   val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"), this)
+  val middleMole: Mole = new Mole("MIDDLE", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
   val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
-  val moles = Array(leftMole, rightMole);
+  val moles = Array(leftMole, rightMole, middleMole);
 
   def drawWorld(): Unit = {
     window.setRectangle(0, 0)(windowSize.windowSize)(Color.backgroundEdge)
