@@ -49,15 +49,21 @@ class Game(
   val rightPlayerName: String = "BLUE"
 ) {
   import GameProperties.* // direkt tillgång till namn på medlemmar i kompanjon
-  val window = new BlockWindow(windowSize, windowTitle)
 
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
 
   val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"), this)
-  val middleMole: Mole = new Mole("MIDDLE", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+  val middleMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
   val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
   val moles = Array(leftMole, rightMole, middleMole);
+
+  val leftMoleAreaBar = new StatsPanel(leftMole)((windowSize.padLef/8).toInt, windowSize.padTop)
+  val middleMoleAreaBar = new StatsPanel(middleMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+  val rightMoleAreaBar = new StatsPanel(rightMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+  val statsPanels = Array(leftMoleAreaBar, middleMoleAreaBar, rightMoleAreaBar)
+
+  val window = new BlockWindow(windowSize, windowTitle, statsPanels)
 
   def drawWorld(): Unit = {
     window.setRectangle(0, 0)(windowSize.windowSize)(Color.backgroundEdge)
@@ -67,7 +73,7 @@ class Game(
     for (mole <- moles) {
       mole.spawn(window)
     }
-    window.updatePanel(moles)
+    window.updatePanel()
   }
 
   def gameover(mole: Mole): Unit = {
@@ -81,7 +87,7 @@ class Game(
   }
   
   def updateGeneral(): Unit = {
-    window.updatePanel(moles)
+    window.updatePanel()
   }
 
   def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {

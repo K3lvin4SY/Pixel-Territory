@@ -5,15 +5,15 @@ import java.awt.{Color as JColor}
 
 class BlockWindow(
   val windowSize: WindowSize,
-  val windowTitle: String
+  val windowTitle: String,
+  val statsPanels: Array[StatsPanel]
 ) {
   import introprog.PixelWindow
 
   val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle)
 
   import GameProperties.Color.*;
-  val leftMoleAreaBar = new ProgressBar(this, ((windowSize.padLef/8).toInt, windowSize.padTop+windowSize.height-4), windowSize.padLef-4, 4, backgroundEdge, background, gold)
-  val rightMoleAreaBar = new ProgressBar(this, ((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+windowSize.height-4), windowSize.padRig-4, 4, backgroundEdge, background, sky)
+  
 
   def setBlock(pos: Pos)(color: JColor = JColor.gray): Unit = {
     val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret
@@ -25,10 +25,14 @@ class BlockWindow(
     window.getPixel(x*windowSize.blockSize, y*windowSize.blockSize);
   }
 
-  def updatePanel(moles: Array[Mole]): Unit = {
-    import GameProperties.Color.*;
+  def updatePanel(): Unit = {
     import windowSize.*;
-    eraseBlocks(((padLef/8).toInt, padTop), (padLef-1, padTop+height))(background)
+    for (statPanel <- statsPanels) {
+      statPanel.update(this)
+    }
+
+
+    /*eraseBlocks(((padLef/8).toInt, padTop), (padLef-1, padTop+height))(background)
     eraseBlocks(((padLef+width+(padRig/8).toInt), padTop), ((padLef+width+padRig)-1, padTop+height))(background)
     write(moles(0).name + " MOLE", ((padLef/8).toInt, padTop), white, blockSize*2)
     write(moles(1).name + " MOLE", ((padLef+width+(padRig/8).toInt), padTop), white, blockSize*2)
@@ -39,7 +43,7 @@ class BlockWindow(
     write("Suicides: " + moles(0).suicide, ((padLef/8).toInt, padTop+3*3), white, (blockSize*1.5).toInt)
     write("Suicides: " + moles(1).suicide, ((padLef+width+(padRig/8).toInt), padTop+3*3), white, (blockSize*1.5).toInt)
     leftMoleAreaBar.update(moles(0).area.length)
-    rightMoleAreaBar.update(moles(1).area.length)
+    rightMoleAreaBar.update(moles(1).area.length)*/
   }
 
   def write(
