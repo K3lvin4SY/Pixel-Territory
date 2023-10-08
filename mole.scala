@@ -126,21 +126,21 @@ class Mole(
     do()*/
 
     // finds all the possible poses
-    var notPossiblePoses = Array.empty[Pos]
-    var possiblePoses = Array.empty[Pos]
-    for (otherMole <- game.moles.filter(_!=this)) {
-      notPossiblePoses = notPossiblePoses ++ otherMole.area
+    val notPossiblePoses = game.moles
+    .filter(_ != this)
+    .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherMole) =>
+      accumulatedPoses ++ otherMole.area
     }
+
     import GameProperties.windowSize.*
-    for (xPos <- padLef+1 to padLef+width-2) {
-      for (yPos <- padTop+1 to padTop+height-2) {
-        if (!notPossiblePoses.contains(xPos, yPos)) {
-          if (!arePosCloseToAnyTerritory(xPos, yPos)(notPossiblePoses, 3)) {
-            possiblePoses :+= (xPos, yPos)
-          }
-        }
+    val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
+      (padTop + 1 to padTop + height - 2).filter { yPos =>
+        !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
+      }.map { yPos =>
+        (xPos, yPos)
       }
-    }
+    }.toList
+
     if (possiblePoses.length == 0) { // no spots left to be spawned
       // cannot respawn or perma dead
       eliminated = true
@@ -164,21 +164,23 @@ def arePosClose(pos1: Pos, pos2: Pos, distance: Int): Boolean = {
   (distance >= xDiff && distance >= yDiff)
 }
 
-def arePosCloseToAnyTerritory(pos: Pos)(area: Array[Pos], distance: Int): Boolean = {
-  var suroundingArea = false
-  for (xDiff <- -distance to distance) if (!suroundingArea) {
-    for (yDiff <- -distance to distance) if (!suroundingArea) {
-      import GameProperties.windowSize
-      if (!windowSize.isPosOutOfBounds(pos._1 + xDiff, pos._2 + yDiff)) {
-        if (area.contains(pos._1 + xDiff, pos._2 + yDiff)) {
-          suroundingArea = true
-        }
-      } else {
-        suroundingArea = true;
+def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean = {
+  val (x, y) = pos
+  val windowSize = GameProperties.windowSize
+
+  var loopQuit = false
+  for (xDiff <- -distance to distance) if (!loopQuit) {
+    for (yDiff <- -distance to distance) if (!loopQuit) {
+      val newX = x + xDiff
+      val newY = y + yDiff
+
+      if (!windowSize.isPosOutOfBounds(newX, newY) && area.contains((newX, newY))) {
+        loopQuit = true
       }
     }
   }
-  suroundingArea
+
+  loopQuit
 }
 def arePosCloseToTerritory(window: BlockWindow, pos: Pos, distance: Int): Boolean = {
   var suroundingColors = Array.empty[JColor]
