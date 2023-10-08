@@ -11,6 +11,10 @@ class BlockWindow(
 
   val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle)
 
+  import GameProperties.Color.*;
+  val leftMoleAreaBar = new ProgressBar(this, ((windowSize.padLef/8).toInt, windowSize.padTop+windowSize.height-4), windowSize.padLef-4, 4, backgroundEdge, background, gold)
+  val rightMoleAreaBar = new ProgressBar(this, ((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+windowSize.height-4), windowSize.padRig-4, 4, backgroundEdge, background, sky)
+
   def setBlock(pos: Pos)(color: JColor = JColor.gray): Unit = {
     val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret
     window.fill(x*windowSize.blockSize, y*windowSize.blockSize, windowSize.blockSize, windowSize.blockSize, color = color)
@@ -34,6 +38,8 @@ class BlockWindow(
     write("Kills: " + moles(1).kills, ((padLef+width+(padRig/8).toInt), padTop+3*2), white, (blockSize*1.5).toInt)
     write("Suicides: " + moles(0).suicide, ((padLef/8).toInt, padTop+3*3), white, (blockSize*1.5).toInt)
     write("Suicides: " + moles(1).suicide, ((padLef+width+(padRig/8).toInt), padTop+3*3), white, (blockSize*1.5).toInt)
+    leftMoleAreaBar.update(moles(0).area.length)
+    rightMoleAreaBar.update(moles(1).area.length)
   }
 
   def write(
@@ -76,14 +82,15 @@ class BlockWindow(
     window.fill(pos1._1*windowSize.blockSize, pos1._2*windowSize.blockSize, (pos1._1-pos2._1).abs *windowSize.blockSize, (pos1._2-pos2._2).abs *windowSize.blockSize, color = color)
   }
 
+  def setRectanglePixel(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
+    val (xPos, yPos) = leftTopPos;
+    val (width, height) = size;
+    window.fill(xPos, yPos, width, height, color = color)
+  }
   def setRectangle(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
     val (xPos, yPos) = leftTopPos;
     val (width, height) = size;
-    for (y <- yPos to yPos+height-1) {
-      for (x <- xPos to xPos+width-1) {
-        setBlock(x,y)(color)
-      }
-    }
+    window.fill(xPos*windowSize.blockSize, yPos*windowSize.blockSize, width*windowSize.blockSize, height*windowSize.blockSize, color = color)
   }
   def setBackground(leftTopPos: Pos)(size: (Int, Int))(colorFunction: Int => JColor = (_: Int) => JColor.gray): Unit = {
     val rightBottomPos = (leftTopPos._1 + size._1, leftTopPos._2 + size._2 )
