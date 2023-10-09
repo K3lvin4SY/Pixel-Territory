@@ -115,7 +115,11 @@ class BlockWindow(
     class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
 
       def isSolved(goalPos: Pos): Boolean = {
-        (distance(goalPos) == 1)
+        if (path.length-1 <= 2) {
+          ((distance(goalPos) == 1) && (pathState.length-1 >= 3))
+        } else {
+          (distance(goalPos) == 1)
+        }
       }
 
       def distance(goalPos: Pos): Int = {
@@ -143,13 +147,13 @@ class BlockWindow(
 
       // start test animation
       /*for (testPos <- currentNode.pathState) {
-        import GameProperties.Color.sky
-        setBlock(testPos)(combineColors(JColor.black, sky))
+        import GameProperties.Color.blue
+        setBlock(testPos)(combineColors(JColor.black, blue))
       }
-      Thread.sleep(150)
+      Thread.sleep(250)
       for (testPos <- currentNode.pathState) {
-        import GameProperties.Color.sky
-        setBlock(testPos)(sky)
+        import GameProperties.Color.blue
+        setBlock(testPos)(blue)
       }*/
       // end test animation
 
