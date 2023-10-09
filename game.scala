@@ -3,7 +3,7 @@ import java.awt.{Color as JColor}
 
 object GameProperties {
   //val windowSize = WindowSize(Array(0, 0, 0, 0), 50, 50, 21)
-  val windowSize = WindowSize(Array(5, 5, 20, 20), 50, 50, 21)
+  val windowSize = WindowSize(Array(5, 5, 20, 20), 50, 50, 20)
   val windowTitle = "MOLE TERRITORY"
   object Color {
     val black = new JColor(0, 0, 0)
@@ -91,21 +91,31 @@ class Game(
   }
 
   def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {
+    class ExecuteMole(val victim: Mole, val killer: Mole, val pos: Pos) {
+      def execute(window: BlockWindow): Unit = {
+        victim.die(window, moles.filter(_!=victim))
+        killer.killed(victim)
+        window.setBlock(pos)(killer.areaColor)
+      }
+    }
     var amount = 0
+    var executionOrder66 = Array.empty[ExecuteMole]
     for (otherMole <- moles.filter(_!=mole)) {
       for (otherPos <- otherMole.area) {
         if (poses.contains(otherPos)) {
           otherMole.removeArea(otherPos)
           // whole area body gets eaten
-          if (otherMole.area.length == 0) {
-            val tempMoleDiePos = otherMole.pos
-            otherMole.die(window, moles.filter(_!=otherMole))
-            mole.killed(otherMole)
-            window.setBlock(tempMoleDiePos)(mole.areaColor)
+          //if (otherMole.area.length == 0) {
+          if (otherMole.pos == otherPos) {
+            executionOrder66 :+= new ExecuteMole(otherMole, mole, otherMole.pos)
           }
           amount += 1
         }
       }
+    }
+    for (executeMole <- executionOrder66) {
+      println(executeMole.victim.name)
+      executeMole.execute(window)
     }
     println(amount)
   }
