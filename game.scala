@@ -96,12 +96,13 @@ class Game() {
     }
     var amount = 0
     var executionOrder66 = Array.empty[ExecuteMole]
+
+    val poseSet = poses.toSet
     for (otherMole <- moles.filter(_!=mole)) {
       for (otherPos <- otherMole.area) {
-        if (poses.contains(otherPos)) {
+        if (poseSet(otherPos)) {
           otherMole.removeArea(otherPos)
           // whole area body gets eaten
-          //if (otherMole.area.length == 0) {
           if (otherMole.pos == otherPos) {
             executionOrder66 :+= new ExecuteMole(otherMole, mole, otherMole.pos)
           }
@@ -140,7 +141,7 @@ class Game() {
         }
       }
       // collision between moles - kill
-      for (otherMole <- moles.filter(_!=mole)) {
+      for (otherMole <- moles.filter(_!=mole).filter(_.eliminated == false)) {
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
             otherMole.die(window, moles.filter(_!=otherMole))
@@ -152,7 +153,11 @@ class Game() {
           }
         }
       }
-      window.setBlock(mole.nextPos)(mole.color)
+      
+      // Draw
+      if (!mole.eliminated) {
+        window.setBlock(mole.nextPos)(mole.color)
+      }
 
       if (window.getBlock(mole.nextPos) == mole.color && mole.dir != (0, 0)) {
         if (mole.area.contains(mole.pos)) {
@@ -166,14 +171,17 @@ class Game() {
           }
         }
         
-        if (mole.area.contains(mole.pos)) { // if it is moles territory
-          window.setBlock(mole.pos)(mole.areaColor)
-          //window.setBlock(mole.pos)(mole.prevColor)
-        } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
-          window.setBlock(mole.pos)(mole.prevColor)
-        } else {
-          window.setBlock(mole.pos)(combineColors(mole.areaColor, mole.prevColor))
-          //window.setBlock(mole.pos)(mole.prevColor)
+        // Draw
+        if (!mole.eliminated) {
+          if (mole.area.contains(mole.pos)) { // if it is moles territory
+            window.setBlock(mole.pos)(mole.areaColor)
+            //window.setBlock(mole.pos)(mole.prevColor)
+          } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
+            window.setBlock(mole.pos)(mole.prevColor)
+          } else {
+            window.setBlock(mole.pos)(combineColors(mole.areaColor, mole.prevColor))
+            //window.setBlock(mole.pos)(mole.prevColor)
+          }
         }
       }
       if (tempPrevColor != mole.color) {
@@ -184,7 +192,9 @@ class Game() {
         }
       }
     }
-    mole.move()
+    if (!mole.eliminated) {
+      mole.move()
+    }
   }
 
 
