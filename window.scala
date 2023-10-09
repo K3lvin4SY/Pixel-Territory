@@ -6,7 +6,7 @@ import java.awt.{Color as JColor}
 class BlockWindow(
   val windowSize: WindowSize,
   val windowTitle: String,
-  val statsPanels: Array[StatsPanel]
+  var statsPanels: Array[StatsPanel]
 ) {
   import introprog.PixelWindow
 
@@ -14,6 +14,9 @@ class BlockWindow(
 
   import GameProperties.Color.*;
   
+  def resetPanels(panels: Array[StatsPanel]): Unit = {
+    statsPanels = panels
+  }
 
   def setBlock(pos: Pos)(color: JColor = JColor.gray): Unit = {
     val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret

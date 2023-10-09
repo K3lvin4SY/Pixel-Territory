@@ -47,17 +47,17 @@ class Game() {
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
 
-  val yellowMole: Mole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
-  val greenMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
-  val blueMole: Mole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
-  val redMole: Mole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
-  val moles = Array(yellowMole, greenMole, blueMole, redMole);
+  var yellowMole: Mole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
+  var greenMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+  var blueMole: Mole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
+  var redMole: Mole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
+  var moles = Array(yellowMole, greenMole, blueMole, redMole);
 
-  val yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-  val greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
-  val blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-  val redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
-  val statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
+  var yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
+  var greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+  var blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+  var redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
+  var statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
 
   val window = new BlockWindow(windowSize, windowTitle, statsPanels)
 
@@ -241,8 +241,25 @@ class Game() {
       e = window.nextEvent()
     }
   }
+
+  def reset(players: Int): Unit = {
+    yellowMole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
+    greenMole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+    blueMole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
+    redMole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
+    moles = Array(yellowMole, blueMole, greenMole, redMole).take(players);
+
+    yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
+    greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+    blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+    redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
+    statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
+    window.resetPanels(statsPanels)
+  }
+
   def start(): Unit = {
     println("Start conquering!")
+    reset(4)
     drawWorld()
     gameLoop()
   }
