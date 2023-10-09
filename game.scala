@@ -9,12 +9,9 @@ object GameProperties {
     val black = new JColor(0, 0, 0)
     val white = new JColor(255, 255, 255)
     val mole = new JColor(51, 51, 0)
-    val soil = new JColor(153, 102, 51)
-    val tunnel = new JColor(204, 153, 102)
-    val grass = new JColor(25, 130, 35)
-    val sky = new JColor(140, 190, 255)
-    val worm = new JColor(238, 121, 194)
-    val gold = new JColor(255, 213, 0)
+    val blue = new JColor(140, 190, 255)
+    val red = new JColor(232, 46, 65)
+    val yellow = new JColor(255, 213, 0)
     val green = new JColor(118, 247, 82)
     val bgGray300 = new JColor(209, 213, 219);
     val bgGray400 = new JColor(156, 163, 175);
@@ -44,24 +41,23 @@ object GameProperties {
   }
 }
 
-class Game(
-  val leftPlayerName: String = "YELLOW",
-  val rightPlayerName: String = "BLUE"
-) {
+class Game() {
   import GameProperties.* // direkt tillgång till namn på medlemmar i kompanjon
 
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
 
-  val leftMole: Mole = new Mole(leftPlayerName, (0, 0), Color.mole, Color.gold, new KeyControl("A", "D", "W", "S"), this)
-  val middleMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
-  val rightMole: Mole = new Mole(rightPlayerName, (0, 0), Color.mole, Color.sky, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
-  val moles = Array(leftMole, rightMole, middleMole);
+  val yellowMole: Mole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
+  val greenMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+  val blueMole: Mole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
+  val redMole: Mole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
+  val moles = Array(yellowMole, greenMole, blueMole, redMole);
 
-  val leftMoleAreaBar = new StatsPanel(leftMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-  val middleMoleAreaBar = new StatsPanel(middleMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
-  val rightMoleAreaBar = new StatsPanel(rightMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-  val statsPanels = Array(leftMoleAreaBar, middleMoleAreaBar, rightMoleAreaBar)
+  val yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
+  val greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+  val blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+  val redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
+  val statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
 
   val window = new BlockWindow(windowSize, windowTitle, statsPanels)
 
@@ -236,9 +232,7 @@ class Game(
     }
   }
   def start(): Unit = {
-    println("Start digging!")
-    println(s"$leftPlayerName ${leftMole.keyControl}")
-    println(s"$rightPlayerName ${rightMole.keyControl}")
+    println("Start conquering!")
     drawWorld()
     gameLoop()
   }
