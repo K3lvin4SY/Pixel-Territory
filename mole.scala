@@ -12,6 +12,7 @@ class Mole(
   var area = Array.empty[Pos]
   var kills = 0
   var suicide = 0
+  var deaths = 0
   var lastDir = (0,0)
   var pos = (-5, -5)
   var currentPath = Array.empty[Pos]
@@ -34,6 +35,7 @@ class Mole(
     } else {
       suicide += 1
     }
+    mole.deaths += 1
   }
 
   def die(window: BlockWindow, otherMoles: Array[Mole]): Unit = {

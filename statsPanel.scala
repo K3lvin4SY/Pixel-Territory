@@ -5,14 +5,31 @@ class StatsPanel(mole: Mole)(x: Int, y: Int) {
   import GameProperties.Color.*;
   val bar = new ProgressBar((x, y+3*4), windowSize.padLef-4, 4, backgroundEdge, background, mole.areaColor)
 
+  var lastAreaLength = 0;
+  var lastMoleKills = 0;
+  var lastMoleSuicides = 0;
+  var lastMoleDeaths = 0;
+
   def update(window: BlockWindow): Unit = {
-    import GameProperties.Color;
-    import window.windowSize.*;
-    window.setRectangle(x, y)(padLef-3, 3*5)(Color.background)
-    window.write(mole.name + " MOLE", (x, y), Color.white, blockSize*2)
-    window.write("Area: " + mole.area.length, (x, y+3), Color.white, (blockSize*1.5).toInt)
-    window.write("Kills: " + mole.kills, (x, y+3*2), Color.white, (blockSize*1.5).toInt)
-    window.write("Suicides: " + mole.suicide, (x, y+3*3), Color.white, (blockSize*1.5).toInt)
-    bar.update(mole.area.length)(x, y+3*4)(window)
+    if (anyValueChanged) {
+      lastAreaLength = mole.area.length
+      lastMoleKills = mole.kills
+      lastMoleSuicides = mole.suicide
+      lastMoleDeaths = mole.deaths
+      println("Updated: "+mole.name)
+      import GameProperties.Color;
+      import window.windowSize.*;
+      window.setRectangle(x, y)(padLef-3, 3*5)(Color.background)
+      window.write(mole.name + " MOLE", (x, y), Color.white, blockSize*2)
+      window.write("Area: " + mole.area.length, (x, y+3), Color.white, (blockSize*1.5).toInt)
+      window.write("Kills: " + mole.kills, (x, y+3*2), Color.white, (blockSize*1.5).toInt)
+      window.write("Suicides: " + mole.suicide, (x, y+3*3), Color.white, (blockSize*1.5).toInt)
+      window.write("Deaths: " + mole.deaths, (x, y+3*4), Color.white, (blockSize*1.5).toInt)
+      bar.update(mole.area.length)(x, y+3*5)(window)
+    }
+  }
+
+  def anyValueChanged: Boolean = {
+    ((mole.area.length != lastAreaLength) || (mole.kills != lastMoleKills) || (mole.suicide != lastMoleSuicides) || (mole.deaths != lastMoleDeaths))
   }
 }
