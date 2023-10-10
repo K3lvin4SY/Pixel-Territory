@@ -47,3 +47,9 @@ def getcolorFactor(colorFactor: JColor, colorResult: JColor): JColor = {
     new JColor(combinedRed, combinedGreen, combinedBlue)
   }
 }
+
+def getTouchingPoses(pos: Pos): Array[Pos] = {
+  val x = pos._1
+  val y = pos._2
+  Array((x+1, y), (x-1, y), (x, y+1), (x, y-1))
+}
