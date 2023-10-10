@@ -102,11 +102,13 @@ class Game() {
   }
 
   def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {
-    class ExecuteMole(val victim: Mole, val killer: Mole, val pos: Pos) {
+    class ExecuteMole(val victim: Mole, val killer: Mole, val pos: Pos, val cut: Boolean) {
       def execute(window: BlockWindow): Unit = {
         victim.die(window, moles.filter(_!=victim))
         killer.killed(victim)
-        window.setBlock(pos)(killer.areaColor)
+        if (cut) {
+          window.setBlock(pos)(killer.areaColor)
+        }
       }
     }
     var amount = 0
@@ -114,15 +116,31 @@ class Game() {
 
     val poseSet = poses.toSet
     for (otherMole <- moles.filter(_!=mole)) {
+      var executeOrder: ExecuteMole = null
+      var touchingPathArea = Array.empty[Pos]
+      if (otherMole.currentPath.length > 0) {
+        touchingPathArea = otherMole.area.filter(areaPos => getTouchingPoses(otherMole.currentPath(0)).contains(areaPos))
+      }
       for (otherPos <- otherMole.area) {
         if (poseSet(otherPos)) {
           otherMole.removeArea(otherPos)
-          // whole area body gets eaten
-          if (otherMole.pos == otherPos) {
-            executionOrder66 :+= new ExecuteMole(otherMole, mole, otherMole.pos)
+          
+          if (touchingPathArea.contains(otherPos)) {
+            touchingPathArea = touchingPathArea.filter(_!=otherPos)
+          }
+          if ((executeOrder != null && !executeOrder.cut) || executeOrder == null) {
+            if (otherMole.pos == otherPos) { // mole gets eaten
+              executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, true)
+            } else if (touchingPathArea.length == 0) {
+              // mole starting path gets eaten
+              executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, false)
+            }
           }
           amount += 1
         }
+      }
+      if (executeOrder != null) {
+        executionOrder66 :+= executeOrder
       }
     }
     for (executeMole <- executionOrder66) {
