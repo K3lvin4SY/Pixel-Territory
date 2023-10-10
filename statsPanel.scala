@@ -16,7 +16,7 @@ class StatsPanel(mole: Mole)(x: Int, y: Int) {
       lastMoleKills = mole.kills
       lastMoleSuicides = mole.suicide
       lastMoleDeaths = mole.deaths
-      println("Updated: "+mole.name)
+      //println("Updated: "+mole.name)
       import GameProperties.Color;
       import window.windowSize.*;
       window.setRectangle(x, y)(padLef-3, 3*5)(Color.background)

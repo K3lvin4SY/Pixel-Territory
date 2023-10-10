@@ -57,6 +57,14 @@ class BlockWindow(
   ): Unit = {
     window.drawText(text, pos._1 * windowSize.blockSize, pos._2 * windowSize.blockSize, color, textSize)
   }
+  def writePixel(
+    text: String,
+    pos: Pos,
+    color: java.awt.Color,
+    textSize: Int = windowSize.blockSize
+  ): Unit = {
+    window.drawText(text, pos._1, pos._2, color, textSize)
+  }
 
   def nextEvent(maxWaitMillis: Int = 10): BlockWindow.Event.EventType = {
     import BlockWindow.Event._
@@ -191,7 +199,7 @@ class BlockWindow(
     }
     val endTime = System.nanoTime()
     val timeInMs = (endTime - startTime) / 1000000
-    println(timeInMs+" ms")
+    //println(timeInMs+" ms")
     pathToBeAdded
   }
   def fillPath(molePath: Array[Pos], mole: Mole): Unit = {

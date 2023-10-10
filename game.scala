@@ -120,10 +120,10 @@ class Game() {
       }
     }
     for (executeMole <- executionOrder66) {
-      println(executeMole.victim.name)
+      //println(executeMole.victim.name)
       executeMole.execute(window)
     }
-    println(amount)
+    //println(amount)
   }
 
   def updateMoles(mole: Mole): Unit = {// update, draw new, erase old
@@ -248,7 +248,7 @@ class Game() {
     while (e != BlockWindow.Event.Undefined) {
       e match
         case BlockWindow.Event.KeyPressed(key) =>
-          println("pressed: "+key.toUpperCase())
+          //println("pressed: "+key.toUpperCase())
           // Navigate menu
           if (key.toUpperCase() == "ENTER") {
             exitMenu = true
@@ -259,6 +259,11 @@ class Game() {
           } else if (Array("RIGHT", "D").contains(key.toUpperCase())) {
             if (menuSelector.players < 4) {
               menuSelector.players += 1
+            }
+          } else if (Array(" ", "TAB").contains(key.toUpperCase())) {
+            menuSelector.players += 1
+            if (menuSelector.players == 5) {
+              menuSelector.players = 2
             }
           }
         case BlockWindow.Event.WindowClosed =>

@@ -38,7 +38,7 @@ def getcolorFactor(colorFactor: JColor, colorResult: JColor): JColor = {
   val combinedGreen = colorResult.getGreen *2 - colorFactor.getGreen
   val combinedBlue = colorResult.getBlue *2 - colorFactor.getBlue
 
-  println("("+combinedRed+", "+combinedGreen+", "+combinedBlue+")")
+  //println("("+combinedRed+", "+combinedGreen+", "+combinedBlue+")")
   if (combinedRed < 0 || combinedGreen < 0 || combinedBlue < 0 ||
     combinedRed > 255 || combinedGreen > 255 || combinedBlue > 255
   ) {
