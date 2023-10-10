@@ -85,9 +85,15 @@ class Game() {
     window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.width, windowSize.height)(mole.areaColor)
     window.write(
       text = mole.name+" MOLE is the Winner!",
-      pos = (windowSize.padLef+4, windowSize.padTop+25),
-      color = Color.black,
-      textSize = 30
+      pos = (windowSize.padLef+4, windowSize.padTop+(windowSize.height/3).toInt),
+      color = Color.white,
+      textSize = windowSize.blockSize*3
+    )
+    window.write(
+      text = "(Press any button to play again)",
+      pos = (windowSize.padLef+8, windowSize.padTop+(windowSize.height/2).toInt),
+      color = Color.white,
+      textSize = (windowSize.blockSize*1.8).toInt
     )
   }
   
@@ -209,7 +215,7 @@ class Game() {
 
   var quit = false
   var exitMenu = false
-  val delayMillis = 80
+  val delayMillis = 2
 
   def menuLoop(): Unit = {
     while (!exitMenu) {
@@ -308,11 +314,14 @@ class Game() {
   }
 
   def start(): Unit = {
-    println("Start conquering!")
-    drawMenu()
-    menuLoop()
-    reset(menuSelector.players)
-    drawWorld()
-    gameLoop()
+    while (!quit) {
+      println("Start conquering!")
+      drawMenu()
+      menuLoop()
+      reset(menuSelector.players)
+      drawWorld()
+      gameLoop()
+      window.nextEvent()
+    }
   }
 }
