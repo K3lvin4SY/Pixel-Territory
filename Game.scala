@@ -328,9 +328,7 @@ class Game() {
       var nextGame = false
       while (!nextGame && !quit) {
         e match
-          case BlockWindow.Event.KeyPressed(key) =>
-            println(key)
-            nextGame = true
+          case BlockWindow.Event.KeyPressed(key) => nextGame = true
           case BlockWindow.Event.WindowClosed => quit = true;
           case _ =>
         e = window.nextEvent()
