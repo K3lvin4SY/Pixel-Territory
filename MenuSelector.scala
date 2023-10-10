@@ -27,5 +27,6 @@ class MenuSelector() {
   }
   def reset(): Unit = {
     players = 2
+    lastPlayers = 0
   }
 }

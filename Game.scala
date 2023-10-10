@@ -246,7 +246,7 @@ class Game() {
       val elapsedMillis = (System.currentTimeMillis - t0).toInt
       Thread.sleep((delayMillis - elapsedMillis) max 0)
     }
-
+    quit = false // reanabling quit to false (if player wants to play again)
   }
 
   def handleMenuEvents(): Unit = {
@@ -310,18 +310,32 @@ class Game() {
     redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
     statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
     window.resetPanels(statsPanels)
-    menuSelector.reset()
   }
 
   def start(): Unit = {
     while (!quit) {
+      exitMenu = false
       println("Start conquering!")
+      menuSelector.reset()
       drawMenu()
       menuLoop()
       reset(menuSelector.players)
       drawWorld()
       gameLoop()
-      window.nextEvent()
+
+      // prss key to play again
+      var e = window.nextEvent()
+      var nextGame = false
+      while (!nextGame && !quit) {
+        e match
+          case BlockWindow.Event.KeyPressed(key) =>
+            println(key)
+            nextGame = true
+          case BlockWindow.Event.WindowClosed => quit = true;
+          case _ =>
+        e = window.nextEvent()
+      }
     }
+    println("QUIT EXECUTED")
   }
 }
