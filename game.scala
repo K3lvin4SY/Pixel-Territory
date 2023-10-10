@@ -60,12 +60,21 @@ class Game() {
   var statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
 
   val window = new BlockWindow(windowSize, windowTitle, statsPanels)
+  val menuSelector = new MenuSelector()
 
-  def drawWorld(): Unit = {
+  def drawBackground(): Unit = {
     window.setRectangle(0, 0)(windowSize.windowSize)(Color.backgroundEdge)
     window.setRectangle(1, 1)(windowSize.windowSize(1, 1))(Color.background)
     window.setRectangle(windowSize.padLef-1, windowSize.padTop-1)(windowSize.size(1, 1))(Color.backgroundEdge)
     window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.size)(Color.white)
+  }
+
+  def drawMenu(): Unit = {
+    drawBackground()
+    menuSelector.update(window)
+  }
+  def drawWorld(): Unit = {
+    drawBackground()
     for (mole <- moles) {
       mole.spawn(window)
     }
@@ -199,8 +208,19 @@ class Game() {
 
 
   var quit = false
+  var exitMenu = false
   val delayMillis = 80
 
+  def menuLoop(): Unit = {
+    while (!exitMenu) {
+      val t0 = System.currentTimeMillis
+      handleMenuEvents()
+      menuSelector.update(window)
+      val elapsedMillis = (System.currentTimeMillis - t0).toInt
+      Thread.sleep((delayMillis - elapsedMillis) max 0)
+    }
+
+  }
   def gameLoop(): Unit = {
     while (!quit) {
       val t0 = System.currentTimeMillis
@@ -223,6 +243,30 @@ class Game() {
 
   }
 
+  def handleMenuEvents(): Unit = {
+    var e = window.nextEvent()
+    while (e != BlockWindow.Event.Undefined) {
+      e match
+        case BlockWindow.Event.KeyPressed(key) =>
+          println("pressed: "+key.toUpperCase())
+          // Navigate menu
+          if (key.toUpperCase() == "ENTER") {
+            exitMenu = true
+          } else if (Array("LEFT", "A").contains(key.toUpperCase())) {
+            if (menuSelector.players > 2) {
+              menuSelector.players -= 1
+            }
+          } else if (Array("RIGHT", "D").contains(key.toUpperCase())) {
+            if (menuSelector.players < 4) {
+              menuSelector.players += 1
+            }
+          }
+        case BlockWindow.Event.WindowClosed =>
+          exitMenu = true;
+          quit = true;
+      e = window.nextEvent()
+    }
+  }
   def handleEvents(): Unit = {
     var e = window.nextEvent()
     while (e != BlockWindow.Event.Undefined) {
@@ -255,11 +299,14 @@ class Game() {
     redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
     statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
     window.resetPanels(statsPanels)
+    menuSelector.reset()
   }
 
   def start(): Unit = {
     println("Start conquering!")
-    reset(4)
+    drawMenu()
+    menuLoop()
+    reset(menuSelector.players)
     drawWorld()
     gameLoop()
   }
