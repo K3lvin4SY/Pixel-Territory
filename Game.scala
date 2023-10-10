@@ -85,7 +85,7 @@ class Game() {
     window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.width, windowSize.height)(mole.areaColor)
     window.write(
       text = mole.name+" MOLE is the Winner!",
-      pos = (windowSize.padLef+4, windowSize.padTop+(windowSize.height/3).toInt),
+      pos = (windowSize.padLef+3, windowSize.padTop+(windowSize.height/3).toInt),
       color = Color.white,
       textSize = windowSize.blockSize*3
     )
