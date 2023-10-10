@@ -90,8 +90,8 @@ class Game() {
       textSize = windowSize.blockSize*3
     )
     window.write(
-      text = "(Press any button to play again)",
-      pos = (windowSize.padLef+8, windowSize.padTop+(windowSize.height/2).toInt),
+      text = "(Press ENTER to play again)",
+      pos = (windowSize.padLef+10, windowSize.padTop+(windowSize.height/2).toInt),
       color = Color.white,
       textSize = (windowSize.blockSize*1.8).toInt
     )
@@ -328,7 +328,10 @@ class Game() {
       var nextGame = false
       while (!nextGame && !quit) {
         e match
-          case BlockWindow.Event.KeyPressed(key) => nextGame = true
+          case BlockWindow.Event.KeyPressed(key) =>
+            if (key.toUpperCase() == "ENTER") {
+              nextGame = true
+            }
           case BlockWindow.Event.WindowClosed => quit = true;
           case _ =>
         e = window.nextEvent()
