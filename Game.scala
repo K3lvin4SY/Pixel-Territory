@@ -131,7 +131,7 @@ class Game() {
           if ((executeOrder != null && !executeOrder.cut) || executeOrder == null) {
             if (otherMole.pos == otherPos) { // mole gets eaten
               executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, true)
-            } else if (touchingPathArea.length == 0) {
+            } else if (touchingPathArea.length == 0 && otherMole.currentPath.length > 0) {
               // mole starting path gets eaten
               executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, false)
             }
