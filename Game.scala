@@ -215,7 +215,7 @@ class Game() {
 
   var quit = false
   var exitMenu = false
-  val delayMillis = 2
+  val delayMillis = 80
 
   def menuLoop(): Unit = {
     while (!exitMenu) {
