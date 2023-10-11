@@ -59,7 +59,7 @@ class Mole(
     }
     currentPath = Array.empty[Pos]
     currentPathColor = Array.empty[JColor]
-    window.setBlock(pos)(prevColor)
+    //CODE123window.setBlock(pos)(prevColor)
     lastDir = (0, 0)
     dir = (0, 0)
     spawn(window)
