@@ -46,6 +46,7 @@ class Game() {
 
   val offsetFromBorder = GameProperties.windowSize.width / 4;
   val y = 0;
+  var windowClosed = false;
 
   var yellowMole: Mole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
   var greenMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
@@ -303,6 +304,7 @@ class Game() {
         case BlockWindow.Event.WindowClosed =>
           exitMenu = true;
           quit = true;
+          windowClosed = true
       e = window.nextEvent()
     }
   }
@@ -321,6 +323,7 @@ class Game() {
           }
         case BlockWindow.Event.WindowClosed =>
           quit = true; // avsluta spel-loopen
+          windowClosed = true
       e = window.nextEvent()
     }
   }
@@ -363,6 +366,9 @@ class Game() {
           case BlockWindow.Event.WindowClosed => quit = true;
           case _ =>
         e = window.nextEvent()
+        if (windowClosed) {
+          quit = true
+        }
       }
     }
     println("QUIT EXECUTED")
