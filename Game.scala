@@ -116,6 +116,16 @@ class Game() {
 
     val poseSet = poses.toSet
     for (otherMole <- moles.filter(_!=mole)) {
+      // update pathColors
+      val pathInsideArea = otherMole.currentPath.intersect(poses)
+      if (pathInsideArea.length > 0) {
+        for (pathInAreaPos <- pathInsideArea) {
+          val index = otherMole.currentPath.indexOf(pathInAreaPos)
+          otherMole.currentPathColor(index) = mole.areaColor
+        }
+      }
+
+      // find executions
       var executeOrder: ExecuteMole = null
       var touchingPathArea = Array.empty[Pos]
       if (otherMole.currentPath.length > 0) {
