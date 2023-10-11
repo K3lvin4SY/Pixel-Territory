@@ -123,7 +123,7 @@ class BlockWindow(
   }
   def findRemainingPathV2(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
     val startTime = System.nanoTime()
-    class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int) {
+    class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int, val currentEmptyPoses: Array[Pos]) {
 
       def isSolved(goalPos: Pos): Boolean = {
         if (path.length-1 <= 2) {
@@ -144,7 +144,11 @@ class BlockWindow(
     var openSet = Array.empty[PathNode]
     var closedSet = Array.empty[PathNode]
 
-    val initialNode = new PathNode(initialPath, path.last, null, 0)
+    val nonAreaNearInit = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+    .map(diaDir => (path.last._1 + diaDir._1, path.last._2 + diaDir._2))
+    .filter(nonAreaPos => !area.contains(nonAreaPos))
+
+    val initialNode = new PathNode(initialPath, path.last, null, 0, nonAreaNearInit)
     openSet :+= initialNode
 
     var pathFound = false
@@ -181,14 +185,16 @@ class BlockWindow(
         for (dirOption <- dirOptions) {
           val nextPossiblePos = (currentNode.lastMove._1 + dirOption._1, currentNode.lastMove._2 + dirOption._2)
           if (area.contains(nextPossiblePos) && !currentNode.pathState.contains(nextPossiblePos)) {
-            val nonAreaNear = dirOptionsDiagonal.map(diaDir => area.contains(nextPossiblePos._1 + diaDir._1, nextPossiblePos._2 + diaDir._2)).contains(false)
-            if (nonAreaNear) {
+            val nonAreaNear = dirOptionsDiagonal
+            .map(diaDir => (nextPossiblePos._1 + diaDir._1, nextPossiblePos._2 + diaDir._2))
+            .filter(nonAreaPos => !area.contains(nonAreaPos))
+            if (nonAreaNear.length > 0 && nonAreaNear.intersect(currentNode.currentEmptyPoses).length > 0) {
               val updatedPath = currentNode.pathState :+ nextPossiblePos
               tempDirs += dirOptionsLbl(dirOptions.indexOf(dirOption))+" | "
               if (!closedSet.map(_.pathState).contains(updatedPath)) {
                 val newMove = nextPossiblePos
                 val newDepth = currentNode.depth + 1
-                val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth)
+                val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth, nonAreaNear)
                 openSet :+= newNode
               }
             }
