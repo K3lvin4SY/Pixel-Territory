@@ -3,7 +3,7 @@ package moleTerritory
 class MenuSelector() {
   var players = 2
   var lastPlayers = 0
-  var health = 6
+  var health = 5
   var lastHealth = 0
   var level = 1
   var lastLevel = 0
@@ -46,7 +46,7 @@ class MenuSelector() {
   def reset(): Unit = {
     players = 2
     lastPlayers = 0
-    health = 6
+    health = 5
     lastHealth = 0
     level = 1
     lastLevel = 0
