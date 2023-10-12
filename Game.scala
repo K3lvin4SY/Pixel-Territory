@@ -305,7 +305,7 @@ class Game() {
                 menuSelector.players += 1
               }
             } else if (menuSelector.level == 2) {
-              if (menuSelector.health < 10) {
+              if (menuSelector.health < 8) {
                 menuSelector.health += 1
               }
             }
@@ -317,7 +317,7 @@ class Game() {
               }
             } else if (menuSelector.level == 2) {
               menuSelector.health += 1
-              if (menuSelector.health == 11) {
+              if (menuSelector.health == 9) {
                 menuSelector.health = 1
               }
             }
