@@ -16,13 +16,45 @@ class HealthBar(pos: Pos)(fillColor: JColor) {
       window.setBlock(x+2, y)(Color.heart)
       window.setBlock(x+2, y+1)(Color.heart)
     }
-    for (offset <- 0 to (lives - deaths)-1) {
+    var line = 0
+    var offset = 0
+    for (_ <- 0 to (lives - deaths)-1) {
       val offsetFactorX = 6
       val offsetFactorY = 4
+      val n = 3
+      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt > (n-1)*offsetFactorX) {
+        line += 1
+        offset = 0
+      }
       drawHeart(
-        x+(offset%3)*offsetFactorX/*+((math.floor(offset / 3).toInt)%2)*3*/,
-        y+(math.floor(offset / 3).toInt)*offsetFactorY
+        x+(offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt,
+        y+line*offsetFactorY
       )
+      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt >= (n-1)*offsetFactorX) {
+        line += 1
+      }
+      offset += 1
     }
+  }
+  def getLines: Int = {
+    import GameProperties.windowSize.blockSize
+    import GameProperties.lives
+
+    var line = 0
+    var offset = 0
+    val offsetFactorX = 6
+    val offsetFactorY = 4
+    val n = 3
+    for (_ <- 0 to (lives)-1) {
+      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt > (n-1)*offsetFactorX) {
+        line += 1
+        offset = 0
+      }
+      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt >= (n-1)*offsetFactorX) {
+        line += 1
+      }
+      offset += 1
+    }
+    line
   }
 }

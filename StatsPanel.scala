@@ -27,7 +27,7 @@ class StatsPanel(mole: Mole)(x: Int, y: Int) {
       //window.write("Suicides: " + mole.suicide, (x, y+3*3), Color.white, (blockSize*1.5).toInt)
       //window.write("Deaths: " + mole.deaths, (x, y+3*4), Color.white, (blockSize*1.5).toInt)
       healthBar.update(mole.deaths)(window)
-      areaBar.update(mole.area.length)(x, y+3*2+4*(math.ceil(GameProperties.lives.toDouble / 3).toInt))(window)
+      areaBar.update(mole.area.length)(x, y+3*2+4*(healthBar.getLines))(window)
     }
   }
 
