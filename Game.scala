@@ -5,7 +5,7 @@ object GameProperties {
   //val windowSize = WindowSize(Array(0, 0, 0, 0), 50, 50, 21)
   val windowSize = WindowSize(Array(5, 5, 20, 20), 50, 50, 20)
   val windowTitle = "MOLE TERRITORY"
-  val lives = 6
+  var lives = 6
   object Color {
     val black = new JColor(0, 0, 0)
     val white = new JColor(255, 255, 255)
@@ -290,17 +290,46 @@ class Game() {
           if (key.toUpperCase() == "ENTER") {
             exitMenu = true
           } else if (Array("LEFT", "A").contains(key.toUpperCase())) {
-            if (menuSelector.players > 2) {
-              menuSelector.players -= 1
+            if (menuSelector.level == 1) {
+              if (menuSelector.players > 2) {
+                menuSelector.players -= 1
+              }
+            } else if (menuSelector.level == 2) {
+              if (menuSelector.health > 1) {
+                menuSelector.health -= 1
+              }
             }
           } else if (Array("RIGHT", "D").contains(key.toUpperCase())) {
-            if (menuSelector.players < 4) {
-              menuSelector.players += 1
+            if (menuSelector.level == 1) {
+              if (menuSelector.players < 4) {
+                menuSelector.players += 1
+              }
+            } else if (menuSelector.level == 2) {
+              if (menuSelector.health < 12) {
+                menuSelector.health += 1
+              }
             }
           } else if (Array(" ", "TAB").contains(key.toUpperCase())) {
-            menuSelector.players += 1
-            if (menuSelector.players == 5) {
-              menuSelector.players = 2
+            if (menuSelector.level == 1) {
+              menuSelector.players += 1
+              if (menuSelector.players == 5) {
+                menuSelector.players = 2
+              }
+            } else if (menuSelector.level == 2) {
+              menuSelector.health += 1
+              if (menuSelector.health == 13) {
+                menuSelector.health = 1
+              }
+            }
+          } else if (Array("UP", "W").contains(key.toUpperCase())) {
+            menuSelector.level -= 1
+            if (menuSelector.level == 0) {
+              menuSelector.level = 1
+            }
+          } else if (Array("DOWN", "S").contains(key.toUpperCase())) {
+            menuSelector.level += 1
+            if (menuSelector.level == 3) {
+              menuSelector.level = 2
             }
           }
         case BlockWindow.Event.WindowClosed =>
@@ -330,7 +359,7 @@ class Game() {
     }
   }
 
-  def reset(players: Int): Unit = {
+  def reset(players: Int, health: Int): Unit = {
     yellowMole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
     greenMole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
     blueMole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
@@ -343,6 +372,7 @@ class Game() {
     redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+26)
     statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
     window.resetPanels(statsPanels)
+    GameProperties.lives = health
   }
 
   def start(): Unit = {
@@ -352,7 +382,7 @@ class Game() {
       menuSelector.reset()
       drawMenu()
       menuLoop()
-      reset(menuSelector.players)
+      reset(menuSelector.players, menuSelector.health)
       drawWorld()
       gameLoop()
 
