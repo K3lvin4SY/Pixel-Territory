@@ -40,20 +40,9 @@ class HealthBar(pos: Pos)(fillColor: JColor) {
     import GameProperties.windowSize.blockSize
     import GameProperties.lives
 
-    var line = 0
-    var offset = 0
-    val offsetFactorX = 6
-    val offsetFactorY = 4
-    val n = 3
-    for (_ <- 0 to (lives)-1) {
-      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt > (n-1)*offsetFactorX) {
-        line += 1
-        offset = 0
-      }
-      if ((offset%n)*offsetFactorX+(line%2)*(offsetFactorX/2).toInt >= (n-1)*offsetFactorX) {
-        line += 1
-      }
-      offset += 1
+    var line = (lives/5).toInt*2
+    if (lives%5 > 0) {
+      line += 1
     }
     line
   }
