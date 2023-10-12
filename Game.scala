@@ -5,9 +5,11 @@ object GameProperties {
   //val windowSize = WindowSize(Array(0, 0, 0, 0), 50, 50, 21)
   val windowSize = WindowSize(Array(5, 5, 20, 20), 50, 50, 20)
   val windowTitle = "MOLE TERRITORY"
+  val lives = 6
   object Color {
     val black = new JColor(0, 0, 0)
     val white = new JColor(255, 255, 255)
+    val heart = new JColor(232, 46, 65)
     val mole = new JColor(51, 51, 0)
     val blue = new JColor(140, 190, 255)
     val red = new JColor(232, 46, 65)
@@ -55,9 +57,9 @@ class Game() {
   var moles = Array(yellowMole, greenMole, blueMole, redMole);
 
   var yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-  var greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+  var greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+40)
   var blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-  var redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
+  var redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+30)
   var statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
 
   val window = new BlockWindow(windowSize, windowTitle, statsPanels)
@@ -105,8 +107,8 @@ class Game() {
   def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {
     class ExecuteMole(val victim: Mole, val killer: Mole, val pos: Pos, val cut: Boolean) {
       def execute(window: BlockWindow): Unit = {
-        victim.die(window, moles.filter(_!=victim))
         killer.killed(victim)
+        victim.die(window, moles.filter(_!=victim))
         if (cut) {
           window.setBlock(pos)(killer.areaColor)
         }
@@ -179,8 +181,8 @@ class Game() {
         for (otherMole <- moles) {
           if (otherMole.currentPath.contains(mole.nextPos)) {
             // /kill otherMole
-            otherMole.die(window, moles.filter(_!=otherMole))
             mole.killed(otherMole)
+            otherMole.die(window, moles.filter(_!=otherMole))
           }
         }
       }
@@ -188,12 +190,12 @@ class Game() {
       for (otherMole <- moles.filter(_!=mole).filter(_.eliminated == false)) {
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
-            otherMole.die(window, moles.filter(_!=otherMole))
             mole.killed(otherMole)
+            otherMole.die(window, moles.filter(_!=otherMole))
           }
           if (mole.currentPath.length > 0) {
-            mole.die(window, moles.filter(_!=mole))
             otherMole.killed(mole)
+            mole.die(window, moles.filter(_!=mole))
           }
         }
       }
@@ -336,9 +338,9 @@ class Game() {
     moles = Array(yellowMole, blueMole, greenMole, redMole).take(players);
 
     yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-    greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+20)
+    greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+26)
     blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-    redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+20)
+    redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+26)
     statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
     window.resetPanels(statsPanels)
   }

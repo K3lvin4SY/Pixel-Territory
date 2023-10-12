@@ -36,6 +36,9 @@ class Mole(
       suicide += 1
     }
     mole.deaths += 1
+    if (GameProperties.lives-mole.deaths <= 0) {
+      mole.eliminated = true
+    }
   }
 
   def die(window: BlockWindow, otherMoles: Array[Mole]): Unit = {
@@ -121,39 +124,41 @@ class Mole(
   }
 
   def spawn(window: BlockWindow): Unit = {
-    area = Array.empty[Pos]
-    /*while
-      pos = getNewRandomPos()
-      arePosCloseToTerritory(window, pos, 3)
-    do()*/
-
-    // finds all the possible poses
-    val notPossiblePoses = game.moles
-    .filter(_ != this)
-    .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherMole) =>
-      accumulatedPoses ++ otherMole.area
-    }
-
-    import GameProperties.windowSize.*
-    val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
-      (padTop + 1 to padTop + height - 2).filter { yPos =>
-        !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
-      }.map { yPos =>
-        (xPos, yPos)
+    if (!eliminated) {
+      area = Array.empty[Pos]
+      /*while
+        pos = getNewRandomPos()
+        arePosCloseToTerritory(window, pos, 3)
+      do()*/
+  
+      // finds all the possible poses
+      val notPossiblePoses = game.moles
+      .filter(_ != this)
+      .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherMole) =>
+        accumulatedPoses ++ otherMole.area
       }
-    }.toList
-
-    if (possiblePoses.length == 0) { // no spots left to be spawned
-      // cannot respawn or perma dead
-      eliminated = true
-    } else {
-      import scala.util.Random.nextInt
-      pos = possiblePoses(nextInt(possiblePoses.length))
-
-      for (xDiff <- -1 to 1) {
-        for (yDiff <- -1 to 1) {
-          window.setBlock(pos._1 + xDiff, pos._2 + yDiff)(areaColor)
-          area :+= (pos._1 + xDiff, pos._2 + yDiff)
+  
+      import GameProperties.windowSize.*
+      val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
+        (padTop + 1 to padTop + height - 2).filter { yPos =>
+          !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
+        }.map { yPos =>
+          (xPos, yPos)
+        }
+      }.toList
+  
+      if (possiblePoses.length == 0) { // no spots left to be spawned
+        // cannot respawn or perma dead
+        eliminated = true
+      } else {
+        import scala.util.Random.nextInt
+        pos = possiblePoses(nextInt(possiblePoses.length))
+  
+        for (xDiff <- -1 to 1) {
+          for (yDiff <- -1 to 1) {
+            window.setBlock(pos._1 + xDiff, pos._2 + yDiff)(areaColor)
+            area :+= (pos._1 + xDiff, pos._2 + yDiff)
+          }
         }
       }
     }
