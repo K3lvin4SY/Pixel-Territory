@@ -24,6 +24,7 @@ object GameProperties {
     val bgGray900 = new JColor(17, 24, 39);
     val background = bgGray600
     val backgroundEdge = bgGray700
+    val gameBackground = white
   }
 /** Used with the different ranges and eraseBlocks */
   def backgroundColorAtDepth(y: Int): JColor = {
@@ -201,6 +202,11 @@ class Game() {
       }
       
       // Draw
+      if (!mole.eliminated) {
+        window.setBlock(mole.nextPos)(mole.color)
+      }
+
+      // eat
       if (!mole.eliminated) {
         window.setBlock(mole.nextPos)(mole.color)
       }

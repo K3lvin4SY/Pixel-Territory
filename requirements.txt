@@ -1,0 +1,6 @@
+Requirements:
+Player with moles
+Mole extends from trait Entity
+Path finding algorithm (A*)
+Singleplayer - saves to ja json file
+Multiplayer

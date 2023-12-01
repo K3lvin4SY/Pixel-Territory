@@ -7,20 +7,17 @@ class Mole(
   val color: java.awt.Color,
   val areaColor: java.awt.Color,
   val keyControl: KeyControl,
+  val player: Player,
   val game: Game
-) {
+) extends Entity {
   var area = Array.empty[Pos]
-  var kills = 0
-  var suicide = 0
-  var deaths = 0
   var lastDir = (0,0)
-  var pos = (-5, -5)
+  var pos = Pos(-5, -5)
   var currentPath = Array.empty[Pos]
   var currentPathColor = Array.empty[JColor]
   var prevColor = java.awt.Color.white
-  var eliminated = false
   override def toString: String = {
-    s"Mole[name=$name, pos=$pos, dir=$dir, points=$area]"
+    s"Mole[pos=$pos, dir=$dir]"
   }
   def addArea(poses: Array[Pos]): Unit = {
     area ++= poses;
@@ -31,30 +28,17 @@ class Mole(
   }
   def killed(mole: Mole): Unit = {
     if (mole != this) {
-      kills += 1
+      player.kills += 1
     } else {
-      suicide += 1
+      player.suicide += 1
     }
-    mole.deaths += 1
-    if (GameProperties.lives-mole.deaths <= 0) {
-      mole.eliminated = true
+    mole.player.deaths += 1
+    if (GameProperties.lives-mole.player.deaths <= 0) {
+      mole.player.eliminated = true
     }
   }
 
-  def die(window: BlockWindow, otherMoles: Array[Mole]): Unit = {
-    for (pos <- area) {
-      window.setBlock(pos)(JColor.white)
-    }
-    for (otherMole <- otherMoles) {
-      for (otherPathPos <- otherMole.currentPath) {
-        if (area.contains(otherPathPos)) {
-          val index = otherMole.currentPath.indexOf(otherPathPos)
-          otherMole.currentPathColor(index) = JColor.white
-          window.setBlock(otherPathPos)(combineColors(otherMole.areaColor, JColor.white))
-        }
-      }
-    }
-    area = Array.empty[Pos]
+  def die(window: BlockWindow): Unit = {
     for ((pos, color) <- currentPath.zip(currentPathColor)) {
       //val colorResult = window.getBlock(pos)
       //window.setBlock(pos)(getcolorFactor(areaColor, colorResult))
@@ -101,9 +85,11 @@ class Mole(
       }
     }
   }
+
+  def update(): Unit = move()
   /** Ger nästa position enligt riktningen dir utan att uppdatera pos */
   def nextPos: Pos = {
-    (pos._1 + dir._1, pos._2 + dir._2);
+    Pos(pos._1 + dir._1, pos._2 + dir._2);
   }
 
   // checks if mole is out of bounds
@@ -120,85 +106,7 @@ class Mole(
     import GameProperties.windowSize.*
     val xPos = nextInt(width-2)+1
     val yPos = nextInt(height-2)+1;
-    (xPos, yPos)
-  }
-
-  def spawn(window: BlockWindow): Unit = {
-    if (!eliminated) {
-      area = Array.empty[Pos]
-      /*while
-        pos = getNewRandomPos()
-        arePosCloseToTerritory(window, pos, 3)
-      do()*/
-  
-      // finds all the possible poses
-      val notPossiblePoses = game.moles
-      .filter(_ != this)
-      .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherMole) =>
-        accumulatedPoses ++ otherMole.area
-      }
-  
-      import GameProperties.windowSize.*
-      val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
-        (padTop + 1 to padTop + height - 2).filter { yPos =>
-          !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
-        }.map { yPos =>
-          (xPos, yPos)
-        }
-      }.toList
-  
-      if (possiblePoses.length == 0) { // no spots left to be spawned
-        // cannot respawn or perma dead
-        eliminated = true
-      } else {
-        import scala.util.Random.nextInt
-        pos = possiblePoses(nextInt(possiblePoses.length))
-  
-        for (xDiff <- -1 to 1) {
-          for (yDiff <- -1 to 1) {
-            window.setBlock(pos._1 + xDiff, pos._2 + yDiff)(areaColor)
-            area :+= (pos._1 + xDiff, pos._2 + yDiff)
-          }
-        }
-      }
-    }
+    Pos(xPos, yPos)
   }
 }
 
-def arePosClose(pos1: Pos, pos2: Pos, distance: Int): Boolean = {
-  val xDiff = (pos2._1 - pos1._1).abs
-  val yDiff = (pos2._2 - pos1._2).abs
-  (distance >= xDiff && distance >= yDiff)
-}
-
-def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean = {
-  val (x, y) = pos
-  val windowSize = GameProperties.windowSize
-
-  var loopQuit = false
-  for (xDiff <- -distance to distance) if (!loopQuit) {
-    for (yDiff <- -distance to distance) if (!loopQuit) {
-      val newX = x + xDiff
-      val newY = y + yDiff
-
-      if (!windowSize.isPosOutOfBounds(newX, newY) && area.contains((newX, newY))) {
-        loopQuit = true
-      }
-    }
-  }
-
-  loopQuit
-}
-def arePosCloseToTerritory(window: BlockWindow, pos: Pos, distance: Int): Boolean = {
-  var suroundingColors = Array.empty[JColor]
-  for (xDiff <- -distance to distance) {
-    for (yDiff <- -distance to distance) {
-      if (!window.windowSize.isPosOutOfBounds(pos._1 + xDiff, pos._2 + yDiff)) {
-        suroundingColors :+= window.getBlock(pos._1 + xDiff, pos._2 + yDiff)
-      } else {
-        suroundingColors :+= JColor.black
-      }
-    }
-  }
-  suroundingColors.map(_ == JColor.white).contains(false)
-}

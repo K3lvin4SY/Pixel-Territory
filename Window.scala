@@ -144,8 +144,8 @@ class BlockWindow(
     var openSet = Array.empty[PathNode]
     var closedSet = Array.empty[PathNode]
 
-    val nonAreaNearInit = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
-    .map(diaDir => (path.last._1 + diaDir._1, path.last._2 + diaDir._2))
+    val nonAreaNearInit = Array(East, West, South, North, South+East, North+East, South+West, North+West)
+    .map(diaDir => path.last + diaDir)
     .filter(nonAreaPos => !area.contains(nonAreaPos))
 
     val initialNode = new PathNode(initialPath, path.last, null, 0, nonAreaNearInit)
@@ -177,8 +177,8 @@ class BlockWindow(
         pathFound = true
         pathToBeAdded = currentNode.pathState.tail
       } else {
-        val dirOptions = Array((1, 0), (-1, 0), (0, 1), (0, -1))
-        val dirOptionsDiagonal = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+        val dirOptions = Array(East, West, South, North)
+        val dirOptionsDiagonal = Array(East, West, South, North, South+East, North+East, South+West, North+West)
         val dirOptionsLbl = Array("E", "W", "S", "N")
 
         var tempDirs = ""
@@ -361,19 +361,19 @@ class WindowSize(
     blockSize*(height+padTop+padBot)
   }
   def size: Pos = {
-    (width, height)
+    Pos(width, height)
   }
   def size(xDiff: Int, yDiff: Int): Pos = {
-    (width+xDiff*2, height+yDiff*2)
+    Pos(width+xDiff*2, height+yDiff*2)
   }
   def windowSize: Pos = {
-    (width+padLef+padRig, height+padTop+padBot)
+    Pos(width+padLef+padRig, height+padTop+padBot)
   }
   def windowSize(xDiff: Int, yDiff: Int): Pos = {
-    (width+padLef+padRig-xDiff*2, height+padTop+padBot-yDiff*2)
+    Pos(width+padLef+padRig-xDiff*2, height+padTop+padBot-yDiff*2)
   }
   def isPosOutOfBounds(pos: Pos): Boolean = {
-    val (xPos, yPos) = pos;
+    val (xPos, yPos) = pos.tuple;
     !((padLef to padLef+width-1).contains(xPos) && (padTop to padTop+height-1).contains(yPos));
   }
 }
