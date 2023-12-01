@@ -19,13 +19,7 @@ object Pos:
   def apply(x: Int, y: Int): Pos =
     new Pos(x, y)
 
-abstract sealed class Dir(val x: Int, val y: Int) extends Pair[Int]:
-
-  def +(p: Pair[Int]): Dir =
-    copy(x + p.x, y + p.y)
-
-  def -(p: Pair[Int]): Dir =
-    copy(x - p.x, y - p.y)
+abstract sealed class Dir(val x: Int, val y: Int) extends Pair[Int]
 
 
 case object North extends Dir( 0, -1)
