@@ -1,5 +1,4 @@
-package moleTerritory 
-type Pos = (Int, Int)
+package moleTerritory
 
 object Main {                
   @main def run = {

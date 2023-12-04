@@ -183,10 +183,10 @@ class BlockWindow(
 
         var tempDirs = ""
         for (dirOption <- dirOptions) {
-          val nextPossiblePos = (currentNode.lastMove._1 + dirOption._1, currentNode.lastMove._2 + dirOption._2)
+          val nextPossiblePos = currentNode.lastMove + dirOption
           if (area.contains(nextPossiblePos) && !currentNode.pathState.contains(nextPossiblePos)) {
             val nonAreaNear = dirOptionsDiagonal
-            .map(diaDir => (nextPossiblePos._1 + diaDir._1, nextPossiblePos._2 + diaDir._2))
+            .map(diaDir => (nextPossiblePos + diaDir)
             .filter(nonAreaPos => !area.contains(nonAreaPos))
             if (nonAreaNear.length > 0 && nonAreaNear.intersect(currentNode.currentEmptyPoses).length > 0) {
               val updatedPath = currentNode.pathState :+ nextPossiblePos

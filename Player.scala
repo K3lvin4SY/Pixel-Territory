@@ -9,7 +9,7 @@ class Player(
   val mole: Mole,
   val game: Game
 ) extends Entity {
-  var area = Array.empty[Pos]
+  var area: Array[Pos] = Array.empty[Pos]
   var kills = 0
   var suicide = 0
   var deaths = 0
@@ -71,7 +71,7 @@ class Player(
       import GameProperties.windowSize.*
       val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
         (padTop + 1 to padTop + height - 2).filter { yPos =>
-          !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
+          !notPossiblePoses.contains(Pos(xPos, yPos)) && !arePosCloseToAnyTerritory(Pos(xPos, yPos))(notPossiblePoses, 3)
         }.map { yPos =>
           (xPos, yPos)
         }
@@ -82,12 +82,12 @@ class Player(
         eliminated = true
       } else {
         import scala.util.Random.nextInt
-        mole.pos = possiblePoses(nextInt(possiblePoses.length))
+        mole.pos = Pos(possiblePoses(nextInt(possiblePoses.length)))
   
         for (xDiff <- -1 to 1) {
           for (yDiff <- -1 to 1) {
-            window.setBlock(mole.pos._1 + xDiff, mole.pos._2 + yDiff)(areaColor)
-            area :+= (mole.pos._1 + xDiff, mole.pos._2 + yDiff)
+            window.setBlock(Pos(mole.pos.x + xDiff, mole.pos.y + yDiff))(areaColor)
+            area :+= Pos(mole.pos._1 + xDiff, mole.pos._2 + yDiff)
           }
         }
       }

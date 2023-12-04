@@ -1,6 +1,25 @@
-Requirements:
+#Requirements:
 Player with moles
-Mole extends from trait Entity
+  KeyControl
+Mole [Entity]
+  Tail
+    collided => death
+  Head
+    collide with head => death
+    collide with othertail => kill
+
+  
 Path finding algorithm (A*)
-Singleplayer - saves to ja json file
+Fill algorithm (line by line (NOT expansion))
 Multiplayer
+  Normal paper.io
+Power-Ups [Entity] - faster, more time or points
+MultiGames without restarting
+
+#Optional:
+Singleplayer - saves to a json file
+  Survival
+    - countdown
+    - end when time is 0
+    - take power-ups to add more time
+    - wipers roll down the screen and removes anything in its path

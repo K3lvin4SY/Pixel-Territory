@@ -6,7 +6,7 @@ class PowerUp(
   val color: Color,
   val game: Game
 ) extends Entity {
-  var pos = (0, 0)
+  var pos = Pos(0, 0)
 
   def update(): Unit = ???
 
@@ -21,9 +21,9 @@ class PowerUp(
       import GameProperties.windowSize.*
       val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
         (padTop + 1 to padTop + height - 2).filter { yPos =>
-          !notPossiblePoses.contains(xPos, yPos) && !arePosCloseToAnyTerritory((xPos, yPos))(notPossiblePoses, 3)
+          !notPossiblePoses.contains(Pos(xPos, yPos)) && !arePosCloseToAnyTerritory(Pos(xPos, yPos))(notPossiblePoses, 3)
         }.map { yPos =>
-          (xPos, yPos)
+          Pos(xPos, yPos)
         }
       }.toList
   
@@ -31,7 +31,7 @@ class PowerUp(
         import scala.util.Random.nextInt
         pos = possiblePoses(nextInt(possiblePoses.length))
   
-        window.setBlock(pos._1, pos._2)(color)
+        window.setBlock(pos)(color)
       }
   }
 }

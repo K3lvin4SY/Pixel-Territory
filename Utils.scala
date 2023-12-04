@@ -49,30 +49,23 @@ def getcolorFactor(colorFactor: JColor, colorResult: JColor): JColor = {
 }
 
 def getTouchingPoses(pos: Pos): Array[Pos] = {
-  val x = pos._1
-  val y = pos._2
-  Array((x+1, y), (x-1, y), (x, y+1), (x, y-1))
+  Array(pos+North, pos+East, pos+South, pos+West)
 }
 
 def arePosClose(pos1: Pos, pos2: Pos, distance: Int): Boolean = {
-  val xDiff = (pos2._1 - pos1._1).abs
-  val yDiff = (pos2._2 - pos1._2).abs
+  val xDiff = (pos2.x - pos1.x).abs
+  val yDiff = (pos2.y - pos1.y).abs
   (distance >= xDiff && distance >= yDiff)
 }
 
 def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean = {
-  val (x, y) = pos
   val windowSize = GameProperties.windowSize
 
   var loopQuit = false
-  for (xDiff <- -distance to distance) if (!loopQuit) {
-    for (yDiff <- -distance to distance) if (!loopQuit) {
-      val newX = x + xDiff
-      val newY = y + yDiff
+  for (dir <- Dir(-distance, -distance) to Dir(distance, distance)) if (!loopQuit) {
 
-      if (!windowSize.isPosOutOfBounds(newX, newY) && area.contains((newX, newY))) {
-        loopQuit = true
-      }
+    if (!windowSize.isPosOutOfBounds(pos+dir) && area.contains(pos+dir)) {
+      loopQuit = true
     }
   }
 
@@ -80,13 +73,11 @@ def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean 
 }
 def arePosCloseToTerritory(window: BlockWindow, pos: Pos, distance: Int): Boolean = {
   var suroundingColors = Array.empty[JColor]
-  for (xDiff <- -distance to distance) {
-    for (yDiff <- -distance to distance) {
-      if (!window.windowSize.isPosOutOfBounds(pos._1 + xDiff, pos._2 + yDiff)) {
-        suroundingColors :+= window.getBlock(pos._1 + xDiff, pos._2 + yDiff)
-      } else {
-        suroundingColors :+= JColor.black
-      }
+  for (dir <- Dir(-distance, -distance) to Dir(distance, distance)) {
+    if (!window.windowSize.isPosOutOfBounds(pos + dir)) {
+      suroundingColors :+= window.getBlock(pos + dir)
+    } else {
+      suroundingColors :+= JColor.black
     }
   }
   suroundingColors.map(_ == JColor.white).contains(false)
