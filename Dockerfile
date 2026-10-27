@@ -9,7 +9,7 @@ RUN arch="$(uname -m | sed 's/arm64/aarch64/')" \
  && chmod +x /usr/local/bin/scala-cli
 WORKDIR /app
 COPY src ./src
-RUN scala-cli --power package src/shared src/js --server=false -o /out/main.js
+RUN mkdir -p /out && scala-cli --power package src/shared src/js --server=false -o /out/main.js
 
 FROM nginx:alpine
 COPY web/index.html /usr/share/nginx/html/index.html

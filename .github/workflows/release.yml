@@ -23,14 +23,15 @@ jobs:
     name: Build jar
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - uses: VirtusLab/scala-cli-setup@v1
       - name: Build fat jar
         run: >
+          mkdir -p input &&
           scala-cli --power package . --server=false --assembly --preamble=false
           --main-class "$MAIN_CLASS" -o "input/$JAR_NAME"
       - uses: actions/upload-artifact@v4
@@ -58,7 +59,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -107,7 +108,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - name: Image name
