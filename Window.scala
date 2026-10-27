@@ -1,5 +1,4 @@
 //> using scala 3.3
-//> using lib se.lth.cs::introprog:1.3.1
 package moleTerritory
 import java.awt.{Color as JColor}
 
@@ -8,11 +7,9 @@ class BlockWindow(
   val windowTitle: String,
   var statsPanels: Array[StatsPanel]
 ) {
-  import introprog.PixelWindow
-
-  val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle)
-
   import GameProperties.Color.*;
+
+  val window = new ScalableWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle, backgroundEdge)
   
   def resetPanels(panels: Array[StatsPanel]): Unit = {
     statsPanels = panels
@@ -70,8 +67,8 @@ class BlockWindow(
     import BlockWindow.Event._
     window.awaitEvent(maxWaitMillis)
     window.lastEventType match
-    case PixelWindow.Event.KeyPressed => KeyPressed(window.lastKey)
-    case PixelWindow.Event.WindowClosed => WindowClosed
+    case ScalableWindow.Event.KeyPressed => KeyPressed(window.lastKey)
+    case ScalableWindow.Event.WindowClosed => WindowClosed
     case _ => Undefined
   }
   
