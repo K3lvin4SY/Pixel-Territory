@@ -13,19 +13,12 @@ class PowerUp(
   def spawn(window: BlockWindow): Unit = {
   
       // finds all the possible poses
-      val notPossiblePoses = game.moles
-      .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherMole) =>
-        accumulatedPoses ++ otherMole.area
+      val notPossiblePoses = game.players
+      .foldLeft(Set.empty[Pos]) { (accumulatedPoses, player) =>
+        accumulatedPoses ++ player.area
       }
   
-      import GameProperties.windowSize.*
-      val possiblePoses = (padLef + 1 to padLef + width - 2).flatMap { xPos =>
-        (padTop + 1 to padTop + height - 2).filter { yPos =>
-          !notPossiblePoses.contains(Pos(xPos, yPos)) && !arePosCloseToAnyTerritory(Pos(xPos, yPos))(notPossiblePoses, 3)
-        }.map { yPos =>
-          Pos(xPos, yPos)
-        }
-      }.toList
+      val possiblePoses = findFreePoses(notPossiblePoses, 3)
   
       if (possiblePoses.length != 0) { // no spots left to be spawned (NOT)
         import scala.util.Random.nextInt

@@ -2,15 +2,10 @@ package moleTerritory
 import java.awt.{Color as JColor}
 
 class Mole(
-  val name: String,
-  var dir: Dir,
   val color: java.awt.Color,
-  val areaColor: java.awt.Color,
-  val keyControl: KeyControl,
-  val player: Player,
-  val game: Game
+  val player: Player
 ) extends Entity {
-  var area = Array.empty[Pos]
+  var dir = Pole
   var lastDir = Pole
   var pos = Pos(-5, -5)
   var currentPath = Array.empty[Pos]
@@ -19,25 +14,8 @@ class Mole(
   override def toString: String = {
     s"Mole[pos=$pos, dir=$dir]"
   }
-  def addArea(poses: Array[Pos]): Unit = {
-    area ++= poses;
-    game.moleWillClaimPos(poses, this)
-  }
-  def removeArea(pos: Pos): Unit = {
-    area = area.filter(_!=pos)
-  }
-  def killed(mole: Mole): Unit = {
-    if (mole != this) {
-      player.kills += 1
-    } else {
-      player.suicide += 1
-    }
-    mole.player.deaths += 1
-    if (GameProperties.lives-mole.player.deaths <= 0) {
-      mole.player.eliminated = true
-    }
-  }
 
+  /** Återställer svansen och stannar molen. Spelaren sköter respawn. */
   def die(window: BlockWindow): Unit = {
     for ((pos, color) <- currentPath.zip(currentPathColor)) {
       //val colorResult = window.getBlock(pos)
@@ -49,14 +27,13 @@ class Mole(
     //CODE123window.setBlock(pos)(prevColor)
     lastDir = Pole
     dir = Pole
-    spawn(window)
   }
 
   /** Om keyControl.has(key) så uppdateras riktningen dir enligt keyControl */
   def setDir(key: String): Unit = {
-    if (keyControl.has(key) || key == "FORCE") {
-      val tempDir = Dir(keyControl.direction(key));
-      if (tempDir != dir.reverse && tempDir != makeReverseDir(lastDir)) {
+    if (player.keyControl.has(key) || key == "FORCE") {
+      val tempDir = player.keyControl.direction(key);
+      if (tempDir != dir.reverse && tempDir != lastDir.reverse) {
         dir = tempDir
         if (tempDir != Pole) {
           lastDir = tempDir
@@ -68,14 +45,11 @@ class Mole(
   def reverseDir(): Unit = {
     dir = dir.reverse
   }
-  def makeReverseDir(dirToReverse: Dir): Dir = {
-    Dir(dirToReverse.x * -1, dirToReverse.y * -1)
-  }
   /** Uppdaterar pos så att den blir nextPos */
   def move(): Unit = {
     pos = nextPos;
-    if (prevColor != areaColor) {
-      if (!currentPath.contains(pos) && !area.contains(pos)) {
+    if (prevColor != player.areaColor) {
+      if (!currentPath.contains(pos) && !player.area.contains(pos)) {
         currentPath :+= pos;
         currentPathColor :+= prevColor;
         //println("added: "+pos)
@@ -105,5 +79,24 @@ class Mole(
     val yPos = nextInt(height-2)+1;
     Pos(xPos, yPos)
   }
-}
 
+  /** Placerar molen på en ledig plats långt från andras territorium */
+  def spawn(window: BlockWindow): Unit = {
+    // finds all the possible poses
+    val notPossiblePoses = player.game.players
+    .filter(_ != player)
+    .foldLeft(Set.empty[Pos]) { (accumulatedPoses, otherPlayer) =>
+      accumulatedPoses ++ otherPlayer.area
+    }
+
+    val possiblePoses = findFreePoses(notPossiblePoses, 3)
+
+    if (possiblePoses.length == 0) { // no spots left to be spawned
+      // cannot respawn or perma dead
+      player.eliminated = true
+    } else {
+      import scala.util.Random.nextInt
+      pos = possiblePoses(nextInt(possiblePoses.length))
+    }
+  }
+}

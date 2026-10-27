@@ -2,17 +2,17 @@ package moleTerritory
 import java.awt.{Color as JColor}
 
 case class KeyControl(left: String, right: String, up: String, down: String) {
-  def direction(key: String): (Int, Int) = {
+  def direction(key: String): Dir = {
     if (key == left) {
-      (-1, 0);
+      West
     } else if (key == right) {
-      (1, 0);
+      East
     } else if (key == up) {
-      (0, -1);
+      North
     } else if (key == down) {
-      (0, 1);
+      South
     } else {
-      (0, 0);
+      Pole
     }
   }
   def has(key: String): Boolean = {
@@ -21,8 +21,8 @@ case class KeyControl(left: String, right: String, up: String, down: String) {
 }
 
 // function for getting all the moles positions in one array
-def getPosFromArray(moles: Array[Mole]): Array[Pos] = {
-  moles.map(_.pos)
+def getPosFromArray(players: Array[Player]): Array[Pos] = {
+  players.map(_.mole.pos)
 }
 
 def combineColors(color1: JColor, color2: JColor): JColor = {
@@ -71,6 +71,18 @@ def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean 
 
   loopQuit
 }
+/** All poses inside the playing field that are not within distance of any pos in occupied */
+def findFreePoses(occupied: Set[Pos], distance: Int): List[Pos] = {
+  import GameProperties.windowSize.*
+  (padLef + 1 to padLef + width - 2).flatMap { xPos =>
+    (padTop + 1 to padTop + height - 2).map { yPos =>
+      Pos(xPos, yPos)
+    }.filter { pos =>
+      !occupied.contains(pos) && !arePosCloseToAnyTerritory(pos)(occupied, distance)
+    }
+  }.toList
+}
+
 def arePosCloseToTerritory(window: BlockWindow, pos: Pos, distance: Int): Boolean = {
   var suroundingColors = Array.empty[JColor]
   for (dir <- Dir(-distance, -distance) to Dir(distance, distance)) {
