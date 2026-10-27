@@ -134,7 +134,7 @@ class Game() {
       var executeOrder: ExecuteMole = null
       var touchingPathArea = Array.empty[Pos]
       if (otherMole.currentPath.length > 0) {
-        touchingPathArea = otherPlayer.area.filter(areaPos => getTouchingPoses(otherMole.currentPath(0)).contains(areaPos))
+        touchingPathArea = otherPlayer.area.filter(areaPos => getTouchingPoses(otherMole.currentPath(0)).contains(areaPos)).toArray
       }
       for (otherPos <- otherPlayer.area) {
         if (poseSet(otherPos)) {
@@ -274,7 +274,7 @@ class Game() {
       for (player <- players) {
         updateMoles(player) // flyttar, ritar, suddar, etc.
         updateGeneral(); // updates text and other game mechanics
-        if (player.area.length >= (windowSize.width*windowSize.height) ) {
+        if (player.area.size >= (windowSize.width*windowSize.height) ) {
           quit = true;
           gameover(player);
         }

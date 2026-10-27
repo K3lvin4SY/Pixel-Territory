@@ -9,7 +9,7 @@ class Player(
   val game: Game
 ) {
   val mole = new Mole(moleColor, this)
-  var area: Array[Pos] = Array.empty[Pos]
+  var area: Set[Pos] = Set.empty[Pos]
   var kills = 0
   var suicide = 0
   var deaths = 0
@@ -22,7 +22,7 @@ class Player(
     game.moleWillClaimPos(poses, this)
   }
   def removeArea(pos: Pos): Unit = {
-    area = area.filter(_!=pos)
+    area -= pos
   }
   def killed(victim: Player): Unit = {
     if (victim != this) {
@@ -51,7 +51,7 @@ class Player(
         }
       }
     }
-    area = Array.empty[Pos]
+    area = Set.empty[Pos]
     mole.die(window)
     spawn(window)
   }
@@ -62,13 +62,13 @@ class Player(
   /** Spawnar molen och ger spelaren ett 3x3 startområde runt den */
   def spawn(window: BlockWindow): Unit = {
     if (!eliminated) {
-      area = Array.empty[Pos]
+      area = Set.empty[Pos]
       mole.spawn(window)
 
       if (!eliminated) {
         for (dir <- Dir(-1, -1) to Dir(1, 1)) {
           window.setBlock(mole.pos + dir)(areaColor)
-          area :+= mole.pos + dir
+          area += mole.pos + dir
         }
       }
     }

@@ -13,7 +13,7 @@ class StatsPanel(player: Player)(x: Int, y: Int) {
 
   def update(window: BlockWindow): Unit = {
     if (anyValueChanged) {
-      lastAreaLength = player.area.length
+      lastAreaLength = player.area.size
       lastKills = player.kills
       lastSuicides = player.suicide
       lastDeaths = player.deaths
@@ -27,11 +27,11 @@ class StatsPanel(player: Player)(x: Int, y: Int) {
       //window.write("Suicides: " + player.suicide, (x, y+3*3), Color.white, (blockSize*1.5).toInt)
       //window.write("Deaths: " + player.deaths, (x, y+3*4), Color.white, (blockSize*1.5).toInt)
       healthBar.update(player.deaths)(window)
-      areaBar.update(player.area.length)(x, y+3*2+4*(healthBar.getLines))(window)
+      areaBar.update(player.area.size)(x, y+3*2+4*(healthBar.getLines))(window)
     }
   }
 
   def anyValueChanged: Boolean = {
-    ((player.area.length != lastAreaLength) || (player.kills != lastKills) || (player.suicide != lastSuicides) || (player.deaths != lastDeaths))
+    ((player.area.size != lastAreaLength) || (player.kills != lastKills) || (player.suicide != lastSuicides) || (player.deaths != lastDeaths))
   }
 }
