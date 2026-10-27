@@ -1,0 +1,131 @@
+name: Release
+
+# Push a tag like v1.0.0 to build all platforms and publish a GitHub Release.
+# Running it manually (Actions tab -> Release -> Run workflow) only builds the
+# packages and uploads them as workflow artifacts.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: Pixel Territory
+  MAIN_CLASS: moleTerritory.run
+  JAR_NAME: pixel-territory.jar
+  # found with: jdeps --print-module-deps --ignore-missing-deps pixel-territory.jar
+  JAVA_MODULES: java.base,java.desktop,jdk.unsupported
+
+jobs:
+  jar:
+    name: Build jar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: VirtusLab/scala-cli-setup@v1
+      - name: Build fat jar
+        run: >
+          scala-cli --power package . --server=false --assembly --preamble=false
+          --main-class "$MAIN_CLASS" -o "input/$JAR_NAME"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jar
+          path: input/${{ env.JAR_NAME }}
+
+  package:
+    name: Package ${{ matrix.target }}
+    needs: jar
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-x64
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: macos-15-intel
+            target: macos-x64
+          - os: macos-latest
+            target: macos-arm64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          path: input
+      - name: Determine version
+        run: |
+          # jpackage needs a plain numeric version; macOS also rejects a leading 0
+          version="${GITHUB_REF_NAME#v}"
+          if [[ "$GITHUB_REF_TYPE" != "tag" || ! "$version" =~ ^[1-9][0-9]*(\.[0-9]+){0,2}$ ]]; then
+            version="1.0.0"
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "ARCHIVE_BASE=Pixel-Territory-$version-${{ matrix.target }}" >> "$GITHUB_ENV"
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          jpackage --type dmg --name "$APP_NAME" --app-version "$VERSION" \
+            --input input --main-jar "$JAR_NAME" --main-class "$MAIN_CLASS" \
+            --add-modules "$JAVA_MODULES" --dest dist
+          mkdir release
+          mv dist/*.dmg "release/$ARCHIVE_BASE.dmg"
+      - name: Package (Windows / Linux)
+        if: runner.os != 'macOS'
+        run: |
+          jpackage --type app-image --name "$APP_NAME" --app-version "$VERSION" \
+            --input input --main-jar "$JAR_NAME" --main-class "$MAIN_CLASS" \
+            --add-modules "$JAVA_MODULES" --dest dist
+          mkdir release
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            (cd dist && 7z a "../release/$ARCHIVE_BASE.zip" "$APP_NAME")
+          else
+            tar -czf "release/$ARCHIVE_BASE.tar.gz" -C dist "$APP_NAME"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: release/*
+
+  release:
+    name: Publish release
+    needs: package
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          body: |
+            ## Downloads
+            | Platform | File |
+            |---|---|
+            | Windows (x64) | `*-windows-x64.zip`: unzip and run `Pixel Territory.exe` |
+            | macOS (Apple Silicon) | `*-macos-arm64.dmg` |
+            | macOS (Intel) | `*-macos-x64.dmg` |
+            | Linux (x64) | `*-linux-x64.tar.gz`: extract and run `Pixel Territory/bin/Pixel Territory` |
+            | Any OS with Java 17+ | `pixel-territory.jar`: `java -jar pixel-territory.jar` |
+
+            No Java installation is needed for the platform builds.
+
+            **macOS:** the app isn't signed by Apple. On first launch, right-click the app and choose Open
+            (or allow it under System Settings → Privacy & Security). If macOS says it is damaged, run
+            `xattr -dr com.apple.quarantine "/Applications/Pixel Territory.app"`.
