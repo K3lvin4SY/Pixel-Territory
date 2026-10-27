@@ -24,6 +24,7 @@ object GameProperties {
     val bgGray900 = new JColor(17, 24, 39);
     val background = bgGray600
     val backgroundEdge = bgGray700
+    val gameBackground = white
   }
 /** Used with the different ranges and eraseBlocks */
   def backgroundColorAtDepth(y: Int): JColor = {
@@ -38,7 +39,7 @@ object GameProperties {
   }
   
   def isPosOutOfPlayingField(pos: Pos): Boolean = {
-    val (xPos, yPos) = pos;
+    val (xPos, yPos) = pos.tuple;
     !((windowSize.padLef to windowSize.padLef+windowSize.width-1).contains(xPos) && (windowSize.padTop to windowSize.padTop+windowSize.height-1).contains(yPos));
   }
 }
@@ -50,26 +51,26 @@ class Game() {
   val y = 0;
   var windowClosed = false;
 
-  var yellowMole: Mole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
-  var greenMole: Mole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
-  var blueMole: Mole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
-  var redMole: Mole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
-  var moles = Array(yellowMole, greenMole, blueMole, redMole);
+  var yellowPlayer: Player = new Player("YELLOW", Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
+  var greenPlayer: Player = new Player("GREEN", Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+  var bluePlayer: Player = new Player("BLUE", Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
+  var redPlayer: Player = new Player("RED", Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
+  var players = Array(yellowPlayer, greenPlayer, bluePlayer, redPlayer);
 
-  var yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-  var greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+40)
-  var blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-  var redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+30)
-  var statsPanels = Array(yellowMoleAreaBar, greenMoleAreaBar, blueMoleAreaBar, redMoleAreaBar)
+  var yellowPlayerAreaBar = new StatsPanel(yellowPlayer)((windowSize.padLef/8).toInt, windowSize.padTop)
+  var greenPlayerAreaBar = new StatsPanel(greenPlayer)((windowSize.padLef/8).toInt, windowSize.padTop+40)
+  var bluePlayerAreaBar = new StatsPanel(bluePlayer)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+  var redPlayerAreaBar = new StatsPanel(redPlayer)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+30)
+  var statsPanels = Array(yellowPlayerAreaBar, greenPlayerAreaBar, bluePlayerAreaBar, redPlayerAreaBar)
 
   val window = new BlockWindow(windowSize, windowTitle, statsPanels)
   val menuSelector = new MenuSelector()
 
   def drawBackground(): Unit = {
-    window.setRectangle(0, 0)(windowSize.windowSize)(Color.backgroundEdge)
-    window.setRectangle(1, 1)(windowSize.windowSize(1, 1))(Color.background)
-    window.setRectangle(windowSize.padLef-1, windowSize.padTop-1)(windowSize.size(1, 1))(Color.backgroundEdge)
-    window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.size)(Color.white)
+    window.setRectangle(Pos(0, 0))(windowSize.windowSize.tuple)(Color.backgroundEdge)
+    window.setRectangle(Pos(1, 1))(windowSize.windowSize(1, 1).tuple)(Color.background)
+    window.setRectangle(Pos(windowSize.padLef-1, windowSize.padTop-1))(windowSize.size(1, 1).tuple)(Color.backgroundEdge)
+    window.setRectangle(Pos(windowSize.padLef, windowSize.padTop))(windowSize.size.tuple)(Color.white)
   }
 
   def drawMenu(): Unit = {
@@ -78,23 +79,23 @@ class Game() {
   }
   def drawWorld(): Unit = {
     drawBackground()
-    for (mole <- moles) {
-      mole.spawn(window)
+    for (player <- players) {
+      player.spawn(window)
     }
     window.updatePanel()
   }
 
-  def gameover(mole: Mole): Unit = {
-    window.setRectangle(windowSize.padLef, windowSize.padTop)(windowSize.width, windowSize.height)(mole.areaColor)
+  def gameover(player: Player): Unit = {
+    window.setRectangle(Pos(windowSize.padLef, windowSize.padTop))(windowSize.width, windowSize.height)(player.areaColor)
     window.write(
-      text = mole.name+" MOLE is the Winner!",
-      pos = (windowSize.padLef+3, windowSize.padTop+(windowSize.height/3).toInt),
+      text = player.name+" MOLE is the Winner!",
+      pos = Pos(windowSize.padLef+3, windowSize.padTop+(windowSize.height/3).toInt),
       color = Color.white,
       textSize = windowSize.blockSize*3
     )
     window.write(
       text = "(Press ENTER to play again)",
-      pos = (windowSize.padLef+10, windowSize.padTop+(windowSize.height/2).toInt),
+      pos = Pos(windowSize.padLef+10, windowSize.padTop+(windowSize.height/2).toInt),
       color = Color.white,
       textSize = (windowSize.blockSize*1.8).toInt
     )
@@ -104,11 +105,11 @@ class Game() {
     window.updatePanel()
   }
 
-  def moleWillClaimPos(poses: Array[Pos], mole: Mole): Unit = {
-    class ExecuteMole(val victim: Mole, val killer: Mole, val pos: Pos, val cut: Boolean) {
+  def moleWillClaimPos(poses: Array[Pos], player: Player): Unit = {
+    class ExecuteMole(val victim: Player, val killer: Player, val pos: Pos, val cut: Boolean) {
       def execute(window: BlockWindow): Unit = {
         killer.killed(victim)
-        victim.die(window, moles.filter(_!=victim))
+        victim.die(window, players.filter(_!=victim))
         if (cut) {
           window.setBlock(pos)(killer.areaColor)
         }
@@ -118,13 +119,14 @@ class Game() {
     var executionOrder66 = Array.empty[ExecuteMole]
 
     val poseSet = poses.toSet
-    for (otherMole <- moles.filter(_!=mole)) {
+    for (otherPlayer <- players.filter(_!=player)) {
+      val otherMole = otherPlayer.mole
       // update pathColors
       val pathInsideArea = otherMole.currentPath.intersect(poses)
       if (pathInsideArea.length > 0) {
         for (pathInAreaPos <- pathInsideArea) {
           val index = otherMole.currentPath.indexOf(pathInAreaPos)
-          otherMole.currentPathColor(index) = mole.areaColor
+          otherMole.currentPathColor(index) = player.areaColor
         }
       }
 
@@ -132,21 +134,21 @@ class Game() {
       var executeOrder: ExecuteMole = null
       var touchingPathArea = Array.empty[Pos]
       if (otherMole.currentPath.length > 0) {
-        touchingPathArea = otherMole.area.filter(areaPos => getTouchingPoses(otherMole.currentPath(0)).contains(areaPos))
+        touchingPathArea = otherPlayer.area.filter(areaPos => getTouchingPoses(otherMole.currentPath(0)).contains(areaPos)).toArray
       }
-      for (otherPos <- otherMole.area) {
+      for (otherPos <- otherPlayer.area) {
         if (poseSet(otherPos)) {
-          otherMole.removeArea(otherPos)
+          otherPlayer.removeArea(otherPos)
           
           if (touchingPathArea.contains(otherPos)) {
             touchingPathArea = touchingPathArea.filter(_!=otherPos)
           }
           if ((executeOrder != null && !executeOrder.cut) || executeOrder == null) {
             if (otherMole.pos == otherPos) { // mole gets eaten
-              executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, true)
+              executeOrder = new ExecuteMole(victim=otherPlayer, killer=player, otherMole.pos, true)
             } else if (touchingPathArea.length == 0 && otherMole.currentPath.length > 0) {
               // mole starting path gets eaten
-              executeOrder = new ExecuteMole(victim=otherMole, killer=mole, otherMole.pos, false)
+              executeOrder = new ExecuteMole(victim=otherPlayer, killer=player, otherMole.pos, false)
             }
           }
           amount += 1
@@ -163,7 +165,8 @@ class Game() {
     //println(amount)
   }
 
-  def updateMoles(mole: Mole): Unit = {// update, draw new, erase old
+  def updateMoles(player: Player): Unit = {// update, draw new, erase old
+    val mole = player.mole
     mole.isMoleOutOfBounds() // checking if mole will be out of bounds
     // draws the new mole block
     /*if (window.getBlock(mole.nextPos) == Color.soil) {
@@ -177,40 +180,46 @@ class Game() {
       val tempPrevColor = window.getBlock(mole.nextPos);
 
       // tail gets cut - kill
-      if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor) && !moles.map(_.color).contains(tempPrevColor)) {
-        for (otherMole <- moles) {
-          if (otherMole.currentPath.contains(mole.nextPos)) {
-            // /kill otherMole
-            mole.killed(otherMole)
-            otherMole.die(window, moles.filter(_!=otherMole))
+      if (tempPrevColor != JColor.white && !players.map(_.areaColor).contains(tempPrevColor) && !players.map(_.mole.color).contains(tempPrevColor)) {
+        for (otherPlayer <- players) {
+          if (otherPlayer.mole.currentPath.contains(mole.nextPos)) {
+            // /kill otherPlayer
+            player.killed(otherPlayer)
+            otherPlayer.die(window, players.filter(_!=otherPlayer))
           }
         }
       }
       // collision between moles - kill
-      for (otherMole <- moles.filter(_!=mole).filter(_.eliminated == false)) {
+      for (otherPlayer <- players.filter(_!=player).filter(_.eliminated == false)) {
+        val otherMole = otherPlayer.mole
         if (otherMole.nextPos == mole.nextPos || otherMole.pos == mole.nextPos || otherMole.pos == mole.pos) {
           if (otherMole.currentPath.length > 0) {
-            mole.killed(otherMole)
-            otherMole.die(window, moles.filter(_!=otherMole))
+            player.killed(otherPlayer)
+            otherPlayer.die(window, players.filter(_!=otherPlayer))
           }
           if (mole.currentPath.length > 0) {
-            otherMole.killed(mole)
-            mole.die(window, moles.filter(_!=mole))
+            otherPlayer.killed(player)
+            player.die(window, players.filter(_!=player))
           }
         }
       }
       
       // Draw
-      if (!mole.eliminated) {
+      if (!player.eliminated) {
         window.setBlock(mole.nextPos)(mole.color)
       }
 
-      if (window.getBlock(mole.nextPos) == mole.color && mole.dir != (0, 0)) {
-        if (mole.area.contains(mole.pos)) {
+      // eat
+      if (!player.eliminated) {
+        window.setBlock(mole.nextPos)(mole.color)
+      }
+
+      if (window.getBlock(mole.nextPos) == mole.color && mole.dir != Pole) {
+        if (player.area.contains(mole.pos)) {
           if (mole.currentPath.length > 0) {
             // fill path
             //println("Printed")
-            window.fillPath(mole.currentPath, mole)
+            window.fillPath(mole.currentPath, player)
             //window.fillPathOutline(mole.currentPath, mole)
             mole.currentPath = Array.empty[Pos]
             mole.currentPathColor = Array.empty[JColor]
@@ -218,27 +227,27 @@ class Game() {
         }
         
         // Draw
-        if (!mole.eliminated) {
-          if (mole.area.contains(mole.pos)) { // if it is moles territory
-            window.setBlock(mole.pos)(mole.areaColor)
+        if (!player.eliminated) {
+          if (player.area.contains(mole.pos)) { // if it is moles territory
+            window.setBlock(mole.pos)(player.areaColor)
             //window.setBlock(mole.pos)(mole.prevColor)
-          } else if (mole.prevColor == combineColors(mole.areaColor, Color.white)) { // if it is already a path
+          } else if (mole.prevColor == combineColors(player.areaColor, Color.white)) { // if it is already a path
             window.setBlock(mole.pos)(mole.prevColor)
           } else {
-            window.setBlock(mole.pos)(combineColors(mole.areaColor, mole.prevColor))
+            window.setBlock(mole.pos)(combineColors(player.areaColor, mole.prevColor))
             //window.setBlock(mole.pos)(mole.prevColor)
           }
         }
       }
       if (tempPrevColor != mole.color) {
-        if (tempPrevColor != JColor.white && !moles.map(_.areaColor).contains(tempPrevColor) && !moles.map(_.color).contains(tempPrevColor)) {
+        if (tempPrevColor != JColor.white && !players.map(_.areaColor).contains(tempPrevColor) && !players.map(_.mole.color).contains(tempPrevColor)) {
           mole.prevColor = JColor.white
         } else {
           mole.prevColor = tempPrevColor
         }
       }
     }
-    if (!mole.eliminated) {
+    if (!player.eliminated) {
       mole.move()
     }
   }
@@ -262,17 +271,17 @@ class Game() {
     while (!quit) {
       val t0 = System.currentTimeMillis
       handleEvents() // ändrar riktning vid tangenttryck etc.
-      for (mole <- moles) {
-        updateMoles(mole) // flyttar, ritar, suddar, etc.
+      for (player <- players) {
+        updateMoles(player) // flyttar, ritar, suddar, etc.
         updateGeneral(); // updates text and other game mechanics
-        if (mole.area.length >= (windowSize.width*windowSize.height) ) {
+        if (player.area.size >= (windowSize.width*windowSize.height) ) {
           quit = true;
-          gameover(mole);
+          gameover(player);
         }
       }
-      if (moles.filter(mole => !mole.eliminated).length == 1) { // all but one eliminated
+      if (players.filter(player => !player.eliminated).length == 1) { // all but one eliminated
         quit = true
-        gameover(moles.filter(mole => !mole.eliminated)(0))
+        gameover(players.filter(player => !player.eliminated)(0))
       }
       val elapsedMillis = (System.currentTimeMillis - t0).toInt
       Thread.sleep((delayMillis - elapsedMillis) max 0)
@@ -345,11 +354,11 @@ class Game() {
       e match
         case BlockWindow.Event.KeyPressed(key) =>
           //println("pressed: "+key.toUpperCase())
-          for (mole <- moles) { // ändra riktning på resp. mullvad
-            if (mole.keyControl.has(key.toUpperCase())) {
-              mole.setDir(key.toUpperCase());
+          for (player <- players) { // ändra riktning på resp. mullvad
+            if (player.keyControl.has(key.toUpperCase())) {
+              player.setDir(key.toUpperCase());
             } else if (key.toUpperCase() == "F") {
-              mole.setDir("FORCE");
+              player.setDir("FORCE");
             }
           }
         case BlockWindow.Event.WindowClosed =>
@@ -359,18 +368,18 @@ class Game() {
     }
   }
 
-  def reset(players: Int, health: Int): Unit = {
-    yellowMole = new Mole("YELLOW", (0, 0), Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
-    greenMole = new Mole("GREEN", (0, 0), Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
-    blueMole = new Mole("BLUE", (0, 0), Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
-    redMole = new Mole("RED", (0, 0), Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
-    moles = Array(yellowMole, blueMole, greenMole, redMole).take(players);
+  def reset(playerCount: Int, health: Int): Unit = {
+    yellowPlayer = new Player("YELLOW", Color.mole, Color.yellow, new KeyControl("A", "D", "W", "S"), this)
+    greenPlayer = new Player("GREEN", Color.mole, Color.green, new KeyControl("J", "L", "I", "K"), this)
+    bluePlayer = new Player("BLUE", Color.mole, Color.blue, new KeyControl("LEFT", "RIGHT", "UP", "DOWN"), this)
+    redPlayer = new Player("RED", Color.mole, Color.red, new KeyControl("F", "H", "T", "G"), this)
+    players = Array(yellowPlayer, bluePlayer, greenPlayer, redPlayer).take(playerCount);
 
-    yellowMoleAreaBar = new StatsPanel(yellowMole)((windowSize.padLef/8).toInt, windowSize.padTop)
-    greenMoleAreaBar = new StatsPanel(greenMole)((windowSize.padLef/8).toInt, windowSize.padTop+26)
-    blueMoleAreaBar = new StatsPanel(blueMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
-    redMoleAreaBar = new StatsPanel(redMole)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+26)
-    statsPanels = Array(yellowMoleAreaBar, blueMoleAreaBar, greenMoleAreaBar, redMoleAreaBar).take(players)
+    yellowPlayerAreaBar = new StatsPanel(yellowPlayer)((windowSize.padLef/8).toInt, windowSize.padTop)
+    greenPlayerAreaBar = new StatsPanel(greenPlayer)((windowSize.padLef/8).toInt, windowSize.padTop+26)
+    bluePlayerAreaBar = new StatsPanel(bluePlayer)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop)
+    redPlayerAreaBar = new StatsPanel(redPlayer)((windowSize.padLef+windowSize.width+(windowSize.padRig/8).toInt), windowSize.padTop+26)
+    statsPanels = Array(yellowPlayerAreaBar, bluePlayerAreaBar, greenPlayerAreaBar, redPlayerAreaBar).take(playerCount)
     window.resetPanels(statsPanels)
     GameProperties.lives = health
   }

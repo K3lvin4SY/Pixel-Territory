@@ -2,17 +2,17 @@ package moleTerritory
 import java.awt.{Color as JColor}
 
 case class KeyControl(left: String, right: String, up: String, down: String) {
-  def direction(key: String): (Int, Int) = {
+  def direction(key: String): Dir = {
     if (key == left) {
-      (-1, 0);
+      West
     } else if (key == right) {
-      (1, 0);
+      East
     } else if (key == up) {
-      (0, -1);
+      North
     } else if (key == down) {
-      (0, 1);
+      South
     } else {
-      (0, 0);
+      Pole
     }
   }
   def has(key: String): Boolean = {
@@ -21,8 +21,8 @@ case class KeyControl(left: String, right: String, up: String, down: String) {
 }
 
 // function for getting all the moles positions in one array
-def getPosFromArray(moles: Array[Mole]): Array[Pos] = {
-  moles.map(_.pos)
+def getPosFromArray(players: Array[Player]): Array[Pos] = {
+  players.map(_.mole.pos)
 }
 
 def combineColors(color1: JColor, color2: JColor): JColor = {
@@ -49,7 +49,48 @@ def getcolorFactor(colorFactor: JColor, colorResult: JColor): JColor = {
 }
 
 def getTouchingPoses(pos: Pos): Array[Pos] = {
-  val x = pos._1
-  val y = pos._2
-  Array((x+1, y), (x-1, y), (x, y+1), (x, y-1))
+  Array(pos+North, pos+East, pos+South, pos+West)
+}
+
+def arePosClose(pos1: Pos, pos2: Pos, distance: Int): Boolean = {
+  val xDiff = (pos2.x - pos1.x).abs
+  val yDiff = (pos2.y - pos1.y).abs
+  (distance >= xDiff && distance >= yDiff)
+}
+
+def arePosCloseToAnyTerritory(pos: Pos)(area: Set[Pos], distance: Int): Boolean = {
+  val windowSize = GameProperties.windowSize
+
+  var loopQuit = false
+  for (dir <- Dir(-distance, -distance) to Dir(distance, distance)) if (!loopQuit) {
+
+    if (!windowSize.isPosOutOfBounds(pos+dir) && area.contains(pos+dir)) {
+      loopQuit = true
+    }
+  }
+
+  loopQuit
+}
+/** All poses inside the playing field that are not within distance of any pos in occupied */
+def findFreePoses(occupied: Set[Pos], distance: Int): List[Pos] = {
+  import GameProperties.windowSize.*
+  (padLef + 1 to padLef + width - 2).flatMap { xPos =>
+    (padTop + 1 to padTop + height - 2).map { yPos =>
+      Pos(xPos, yPos)
+    }.filter { pos =>
+      !occupied.contains(pos) && !arePosCloseToAnyTerritory(pos)(occupied, distance)
+    }
+  }.toList
+}
+
+def arePosCloseToTerritory(window: BlockWindow, pos: Pos, distance: Int): Boolean = {
+  var suroundingColors = Array.empty[JColor]
+  for (dir <- Dir(-distance, -distance) to Dir(distance, distance)) {
+    if (!window.windowSize.isPosOutOfBounds(pos + dir)) {
+      suroundingColors :+= window.getBlock(pos + dir)
+    } else {
+      suroundingColors :+= JColor.black
+    }
+  }
+  suroundingColors.map(_ == JColor.white).contains(false)
 }

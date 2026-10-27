@@ -27,8 +27,8 @@ class ProgressBar(
     import moleTerritory.GameProperties.windowSize.blockSize
     val fillWidth = ((width-2)*blockSize*fillAmount).toInt
 
-    window.setRectangle(x, y)(width, height)(edgeColor)
-    window.setRectangle(x+1, y+1)(width-2, height-2)(backgroundColor)
-    window.setRectanglePixel((x+1)*blockSize, (y+1)*blockSize)(fillWidth, (height-2)*blockSize)(fillColor)
+    window.setRectangle(Pos(x, y))(width, height)(edgeColor)
+    window.setRectangle(Pos(x+1, y+1))(width-2, height-2)(backgroundColor)
+    window.setRectanglePixel(Pos((x+1)*blockSize, (y+1)*blockSize))(fillWidth, (height-2)*blockSize)(fillColor)
   }
 }

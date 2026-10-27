@@ -1,5 +1,4 @@
 //> using scala 3.3
-//> using lib se.lth.cs::introprog:1.3.1
 package moleTerritory
 import java.awt.{Color as JColor}
 
@@ -8,23 +7,21 @@ class BlockWindow(
   val windowTitle: String,
   var statsPanels: Array[StatsPanel]
 ) {
-  import introprog.PixelWindow
-
-  val window = new PixelWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle)
-
   import GameProperties.Color.*;
+
+  val window = new ScalableWindow(windowSize.windowWidth, windowSize.windowHeight, windowTitle, backgroundEdge)
   
   def resetPanels(panels: Array[StatsPanel]): Unit = {
     statsPanels = panels
   }
 
   def setBlock(pos: Pos)(color: JColor = JColor.gray): Unit = {
-    val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret
+    val (x, y) = pos.tuple //räkna ut blockets x- & y-koordinat i pixelfönstret
     window.fill(x*windowSize.blockSize, y*windowSize.blockSize, windowSize.blockSize, windowSize.blockSize, color = color)
   }
 
   def getBlock(pos: Pos): JColor = {
-    val (x, y) = pos //räkna ut blockets x- & y-koordinat i pixelfönstret
+    val (x, y) = pos.tuple //räkna ut blockets x- & y-koordinat i pixelfönstret
     window.getPixel(x*windowSize.blockSize, y*windowSize.blockSize);
   }
 
@@ -55,7 +52,7 @@ class BlockWindow(
     color: java.awt.Color,
     textSize: Int = windowSize.blockSize
   ): Unit = {
-    window.drawText(text, pos._1 * windowSize.blockSize, pos._2 * windowSize.blockSize, color, textSize)
+    window.drawText(text, pos.x * windowSize.blockSize, pos.y * windowSize.blockSize, color, textSize)
   }
   def writePixel(
     text: String,
@@ -63,26 +60,26 @@ class BlockWindow(
     color: java.awt.Color,
     textSize: Int = windowSize.blockSize
   ): Unit = {
-    window.drawText(text, pos._1, pos._2, color, textSize)
+    window.drawText(text, pos.x, pos.y, color, textSize)
   }
 
   def nextEvent(maxWaitMillis: Int = 10): BlockWindow.Event.EventType = {
     import BlockWindow.Event._
     window.awaitEvent(maxWaitMillis)
     window.lastEventType match
-    case PixelWindow.Event.KeyPressed => KeyPressed(window.lastKey)
-    case PixelWindow.Event.WindowClosed => WindowClosed
+    case ScalableWindow.Event.KeyPressed => KeyPressed(window.lastKey)
+    case ScalableWindow.Event.WindowClosed => WindowClosed
     case _ => Undefined
   }
   
   
   /** Use to erase old points, e.g updated score */
   def eraseBlocks(pos1: Pos, pos2: Pos)(colorFunction: Int => JColor = (_: Int) => JColor.gray): Unit = {
-    val (x1, y1) = pos1;
-    val (x2, y2) = pos2;
+    val (x1, y1) = pos1.tuple;
+    val (x2, y2) = pos2.tuple;
     for (x <- x1 to x2) {
       for (y <- y1 to y2) {
-        setBlock(x, y)(colorFunction(y))
+        setBlock(Pos(x, y))(colorFunction(y))
       }
     }
   }
@@ -94,34 +91,34 @@ class BlockWindow(
         setBlock(x, y)(color)
       }
     }*/
-    window.fill(pos1._1*windowSize.blockSize, pos1._2*windowSize.blockSize, (pos1._1-pos2._1).abs *windowSize.blockSize, (pos1._2-pos2._2).abs *windowSize.blockSize, color = color)
+    window.fill(pos1.x*windowSize.blockSize, pos1.y*windowSize.blockSize, (pos1.x-pos2.x).abs *windowSize.blockSize, (pos1.y-pos2.y).abs *windowSize.blockSize, color = color)
   }
 
   def setRectanglePixel(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
-    val (xPos, yPos) = leftTopPos;
+    val (xPos, yPos) = leftTopPos.tuple;
     val (width, height) = size;
     window.fill(xPos, yPos, width, height, color = color)
   }
   def setRectangle(leftTopPos: Pos)(size: (Int, Int))(color: JColor = JColor.gray): Unit = {
-    val (xPos, yPos) = leftTopPos;
+    val (xPos, yPos) = leftTopPos.tuple;
     val (width, height) = size;
     window.fill(xPos*windowSize.blockSize, yPos*windowSize.blockSize, width*windowSize.blockSize, height*windowSize.blockSize, color = color)
   }
   def setBackground(leftTopPos: Pos)(size: (Int, Int))(colorFunction: Int => JColor = (_: Int) => JColor.gray): Unit = {
-    val rightBottomPos = (leftTopPos._1 + size._1, leftTopPos._2 + size._2 )
+    val rightBottomPos = Pos(leftTopPos.x + size._1, leftTopPos.y + size._2)
     eraseBlocks(leftTopPos, rightBottomPos)(colorY => colorFunction(colorY));
   }
-  def fillPathOutline(path: Array[(Int, Int)], mole: Mole, area: Array[Pos]): Unit = {
+  def fillPathOutline(path: Array[Pos], player: Player, area: Array[Pos]): Unit = {
     var areaToAdd = area.clone()
     for (pos <- path) {
-      //setBlock(pos)(combineColors(JColor.lightGray ,mole.areaColor))
-      setBlock(pos)(mole.areaColor)
+      //setBlock(pos)(combineColors(JColor.lightGray ,player.areaColor))
+      setBlock(pos)(player.areaColor)
       areaToAdd :+= pos;
-      //mole.addArea(pos)
+      //player.addArea(pos)
     }
-    mole.addArea(areaToAdd)
+    player.addArea(areaToAdd)
   }
-  def findRemainingPathV2(path: Array[Pos], area: Array[Pos]): Array[Pos] = {
+  def findRemainingPathV2(path: Array[Pos], area: Set[Pos]): Array[Pos] = {
     val startTime = System.nanoTime()
     class PathNode(val pathState: Array[Pos], val lastMove: Pos, val parent: PathNode, val depth: Int, val currentEmptyPoses: Array[Pos]) {
 
@@ -134,31 +131,34 @@ class BlockWindow(
       }
 
       def distance(goalPos: Pos): Int = {
-        ( (lastMove._1 - goalPos._1).abs + (lastMove._2 - goalPos._2).abs )
+        ( (lastMove.x - goalPos.x).abs + (lastMove.y - goalPos.y).abs )
       }
     }
 
     val goalPos = path.head
     val initialPath = Array(path.last)
 
-    var openSet = Array.empty[PathNode]
-    var closedSet = Array.empty[PathNode]
+    // ordered by depth + distance, ties in insertion order
+    var insertCount = 0
+    val openSet = scala.collection.mutable.PriorityQueue.empty[(Int, Int, PathNode)](
+      Ordering.by[(Int, Int, PathNode), (Int, Int)](entry => (entry._1, entry._2)).reverse
+    )
+    def addToOpenSet(node: PathNode): Unit = {
+      openSet.enqueue((node.depth + node.distance(goalPos), insertCount, node))
+      insertCount += 1
+    }
 
-    val nonAreaNearInit = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
-    .map(diaDir => (path.last._1 + diaDir._1, path.last._2 + diaDir._2))
+    val nonAreaNearInit = Array(East, West, South, North, South+East, North+East, South+West, North+West)
+    .map(diaDir => path.last + diaDir)
     .filter(nonAreaPos => !area.contains(nonAreaPos))
 
     val initialNode = new PathNode(initialPath, path.last, null, 0, nonAreaNearInit)
-    openSet :+= initialNode
+    addToOpenSet(initialNode)
 
     var pathFound = false
     var pathToBeAdded = Array.empty[Pos]
     while (openSet.length > 0 && !pathFound) {
-      //openSet = openSet.sortBy(_.distance(goalPos))
-      openSet = openSet.sortBy(node => node.depth + node.distance(goalPos))
-      val currentNode = openSet.head
-      openSet = openSet.tail
-      closedSet :+= currentNode
+      val currentNode = openSet.dequeue()._3
 
       // start test animation
       /*for (testPos <- currentNode.pathState) {
@@ -177,26 +177,24 @@ class BlockWindow(
         pathFound = true
         pathToBeAdded = currentNode.pathState.tail
       } else {
-        val dirOptions = Array((1, 0), (-1, 0), (0, 1), (0, -1))
-        val dirOptionsDiagonal = Array((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+        val dirOptions = Array(East, West, South, North)
+        val dirOptionsDiagonal = Array(East, West, South, North, South+East, North+East, South+West, North+West)
         val dirOptionsLbl = Array("E", "W", "S", "N")
 
         var tempDirs = ""
         for (dirOption <- dirOptions) {
-          val nextPossiblePos = (currentNode.lastMove._1 + dirOption._1, currentNode.lastMove._2 + dirOption._2)
+          val nextPossiblePos = currentNode.lastMove + dirOption
           if (area.contains(nextPossiblePos) && !currentNode.pathState.contains(nextPossiblePos)) {
             val nonAreaNear = dirOptionsDiagonal
-            .map(diaDir => (nextPossiblePos._1 + diaDir._1, nextPossiblePos._2 + diaDir._2))
+            .map(diaDir => nextPossiblePos + diaDir)
             .filter(nonAreaPos => !area.contains(nonAreaPos))
             if (nonAreaNear.length > 0 && nonAreaNear.intersect(currentNode.currentEmptyPoses).length > 0) {
               val updatedPath = currentNode.pathState :+ nextPossiblePos
               tempDirs += dirOptionsLbl(dirOptions.indexOf(dirOption))+" | "
-              if (!closedSet.map(_.pathState).contains(updatedPath)) {
-                val newMove = nextPossiblePos
-                val newDepth = currentNode.depth + 1
-                val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth, nonAreaNear)
-                openSet :+= newNode
-              }
+              val newMove = nextPossiblePos
+              val newDepth = currentNode.depth + 1
+              val newNode = new PathNode(updatedPath, newMove, currentNode, newDepth, nonAreaNear)
+              addToOpenSet(newNode)
             }
           }
         }
@@ -208,28 +206,30 @@ class BlockWindow(
     //println(timeInMs+" ms")
     pathToBeAdded
   }
-  def fillPath(molePath: Array[Pos], mole: Mole): Unit = {
-    val areaPath = findRemainingPathV2(molePath, mole.area)
+  def fillPath(molePath: Array[Pos], player: Player): Unit = {
+    val areaPath = findRemainingPathV2(molePath, player.area)
     val path = molePath ++ areaPath
-    /*for ((xP, yP) <- areaPath) {
-      setBlock(xP, yP)(combineColors(JColor.red, mole.areaColor))
+    val pathSet = path.toSet
+    val pathIndex = path.zipWithIndex.distinctBy(_._1).toMap
+    /*for (areaPos <- areaPath) {
+      setBlock(areaPos)(combineColors(JColor.red, player.areaColor))
     }*/
     
 
     // find bounding box
-    var maxX: Int = path(0)._1;
-    var minX: Int = path(0)._1;
-    var maxY: Int = path(0)._2;
-    var minY: Int = path(0)._2;
+    var maxX: Int = path(0).x;
+    var minX: Int = path(0).x;
+    var maxY: Int = path(0).y;
+    var minY: Int = path(0).y;
     for (pos <- path) {
-      val x = pos._1
+      val x = pos.x
       if (x < minX) {
         minX = x
       } else if (x > maxX) {
         maxX = x
       }
 
-      val y = pos._2
+      val y = pos.y
       if (y < minY) {
         minY = y
       } else if (y > maxY) {
@@ -244,7 +244,7 @@ class BlockWindow(
     var lastDirs = Array.empty[String]
 
     def getBeforeAfterPos(x: Int, y: Int): (Pos, Pos) = {
-      val posIndex = path.indexOf((x, y))
+      val posIndex = pathIndex(Pos(x, y))
       var posAfterIndex = posIndex+1
       if (posAfterIndex == path.length) {
         posAfterIndex = 0
@@ -258,20 +258,20 @@ class BlockWindow(
       (posBefore, posAfter)
     }
     def beginFlow(x: Int, y: Int, posBefore: Pos, posAfter: Pos): Unit = {
-      if ((x, y-1) == posAfter || (x, y-1) == posBefore) {
+      if (Pos(x, y-1) == posAfter || Pos(x, y-1) == posBefore) {
         lastDirs :+= "UP"
       }
-      if ((x, y+1) == posAfter || (x, y+1) == posBefore) {
+      if (Pos(x, y+1) == posAfter || Pos(x, y+1) == posBefore) {
         lastDirs :+= "DOWN"
       }
       longSwitch = true
     }
     def endFlow(x: Int, y: Int, posBefore: Pos, posAfter: Pos): Unit = {
       var currentDirs = Array.empty[String]
-      if ((x, y-1) == posAfter || (x, y-1) == posBefore) {
+      if (Pos(x, y-1) == posAfter || Pos(x, y-1) == posBefore) {
         currentDirs :+= "UP"
       }
-      if ((x, y+1) == posAfter || (x, y+1) == posBefore) {
+      if (Pos(x, y+1) == posAfter || Pos(x, y+1) == posBefore) {
         currentDirs :+= "DOWN"
       }
       val dirsInCommon = lastDirs.filter(dir => currentDirs.contains(dir))
@@ -285,27 +285,27 @@ class BlockWindow(
     }
     for (y <- minY to maxY) {
       for (x <- minX to maxX) {
-        if (!path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 010
+        if (!pathSet.contains(Pos(x-1, y)) && pathSet.contains(Pos(x, y)) && !pathSet.contains(Pos(x+1, y))) { // 010
           fillMode = !fillMode
-        } else if (!path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 011
+        } else if (!pathSet.contains(Pos(x-1, y)) && pathSet.contains(Pos(x, y)) && pathSet.contains(Pos(x+1, y))) { // 011
 
           val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
           beginFlow(x, y, posBefore, posAfter)
 
-          if (!((x+1, y) == posAfter || (x+1, y) == posBefore)) {
+          if (!(Pos(x+1, y) == posAfter || Pos(x+1, y) == posBefore)) {
             fillMode = !fillMode
             longSwitch = false
             lastDirs = Array.empty[String]
           }
 
-        } else if (path.contains(x-1, y) && path.contains(x, y) && !path.contains(x+1, y)) { // 110
+        } else if (pathSet.contains(Pos(x-1, y)) && pathSet.contains(Pos(x, y)) && !pathSet.contains(Pos(x+1, y))) { // 110
           
           val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
           endFlow(x, y, posBefore, posAfter)
 
-        } else if (path.contains(x-1, y) && path.contains(x, y) && path.contains(x+1, y)) { // 111
+        } else if (pathSet.contains(Pos(x-1, y)) && pathSet.contains(Pos(x, y)) && pathSet.contains(Pos(x+1, y))) { // 111
           
           val (posBefore, posAfter) = getBeforeAfterPos(x, y)
 
@@ -313,23 +313,23 @@ class BlockWindow(
             beginFlow(x, y, posBefore, posAfter)
           }
 
-          if (!((x+1, y) == posAfter || (x+1, y) == posBefore)) {
+          if (!(Pos(x+1, y) == posAfter || Pos(x+1, y) == posBefore)) {
             endFlow(x, y, posBefore, posAfter)
           }
 
         } else if (fillMode && lastDirs.length == 0) {
-          if (!mole.area.contains(x, y)) {
-            //setBlock(x, y)(combineColors(JColor.gray, mole.areaColor))
-            setBlock(x, y)(mole.areaColor)
-            areaToAdd :+= (x, y)
-            //mole.addArea(x, y)
+          if (!player.area.contains(Pos(x, y))) {
+            //setBlock(Pos(x, y))(combineColors(JColor.gray, player.areaColor))
+            setBlock(Pos(x, y))(player.areaColor)
+            areaToAdd :+= Pos(x, y)
+            //player.addArea(Pos(x, y))
           }
         }
       }
       fillMode = false
       lastDirs = Array.empty[String]
     }
-    fillPathOutline(molePath, mole, areaToAdd)
+    fillPathOutline(molePath, player, areaToAdd)
   }
 }
 
@@ -361,19 +361,19 @@ class WindowSize(
     blockSize*(height+padTop+padBot)
   }
   def size: Pos = {
-    (width, height)
+    Pos(width, height)
   }
   def size(xDiff: Int, yDiff: Int): Pos = {
-    (width+xDiff*2, height+yDiff*2)
+    Pos(width+xDiff*2, height+yDiff*2)
   }
   def windowSize: Pos = {
-    (width+padLef+padRig, height+padTop+padBot)
+    Pos(width+padLef+padRig, height+padTop+padBot)
   }
   def windowSize(xDiff: Int, yDiff: Int): Pos = {
-    (width+padLef+padRig-xDiff*2, height+padTop+padBot-yDiff*2)
+    Pos(width+padLef+padRig-xDiff*2, height+padTop+padBot-yDiff*2)
   }
   def isPosOutOfBounds(pos: Pos): Boolean = {
-    val (xPos, yPos) = pos;
+    val (xPos, yPos) = pos.tuple;
     !((padLef to padLef+width-1).contains(xPos) && (padTop to padTop+height-1).contains(yPos));
   }
 }

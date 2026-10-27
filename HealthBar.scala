@@ -3,18 +3,18 @@ import java.awt.{Color as JColor}
 
 class HealthBar(pos: Pos)(fillColor: JColor) {
   def update(deaths: Int)(window: BlockWindow): Unit = {
-    val (x, y) = pos
+    val (x, y) = pos.tuple
     import GameProperties.windowSize.blockSize
     import GameProperties.Color
     import GameProperties.lives
 
     def drawHeart(x: Int, y: Int): Unit = {
-      window.setBlock(x, y)(Color.heart)
-      window.setBlock(x, y+1)(Color.heart)
-      window.setBlock(x+1, y+1)(Color.heart)
-      window.setBlock(x+1, y+2)(Color.heart)
-      window.setBlock(x+2, y)(Color.heart)
-      window.setBlock(x+2, y+1)(Color.heart)
+      window.setBlock(Pos(x, y))(Color.heart)
+      window.setBlock(Pos(x, y+1))(Color.heart)
+      window.setBlock(Pos(x+1, y+1))(Color.heart)
+      window.setBlock(Pos(x+1, y+2))(Color.heart)
+      window.setBlock(Pos(x+2, y))(Color.heart)
+      window.setBlock(Pos(x+2, y+1))(Color.heart)
     }
     var line = 0
     var offset = 0
