@@ -253,40 +253,70 @@ class Game() {
   }
 
 
-  var quit = false
+  enum Screen { case Menu, Playing, GameOver }
+  var screen = Screen.Menu
   var exitMenu = false
   val delayMillis = 80
 
-  def menuLoop(): Unit = {
-    while (!exitMenu) {
-      val t0 = System.currentTimeMillis
-      handleMenuEvents()
-      menuSelector.update(window)
-      val elapsedMillis = (System.currentTimeMillis - t0).toInt
-      Thread.sleep((delayMillis - elapsedMillis) max 0)
-    }
-
+  /** Advances the game one step. Called every delayMillis by the platform's main loop. */
+  def tick(): Unit = {
+    screen match
+      case Screen.Menu => menuTick()
+      case Screen.Playing => gameTick()
+      case Screen.GameOver => gameOverTick()
   }
-  def gameLoop(): Unit = {
-    while (!quit) {
-      val t0 = System.currentTimeMillis
-      handleEvents() // ändrar riktning vid tangenttryck etc.
-      for (player <- players) {
-        updateMoles(player) // flyttar, ritar, suddar, etc.
-        updateGeneral(); // updates text and other game mechanics
-        if (player.area.size >= (windowSize.width*windowSize.height) ) {
-          quit = true;
-          gameover(player);
-        }
-      }
-      if (players.filter(player => !player.eliminated).length == 1) { // all but one eliminated
-        quit = true
-        gameover(players.filter(player => !player.eliminated)(0))
-      }
-      val elapsedMillis = (System.currentTimeMillis - t0).toInt
-      Thread.sleep((delayMillis - elapsedMillis) max 0)
+
+  def openMenu(): Unit = {
+    exitMenu = false
+    println("Start conquering!")
+    menuSelector.reset()
+    drawMenu()
+    screen = Screen.Menu
+  }
+
+  def menuTick(): Unit = {
+    handleMenuEvents()
+    menuSelector.update(window)
+    if (exitMenu && !windowClosed) {
+      reset(menuSelector.players, menuSelector.health)
+      drawWorld()
+      screen = Screen.Playing
     }
-    quit = false // reanabling quit to false (if player wants to play again)
+  }
+  def gameTick(): Unit = {
+    var roundOver = false
+    handleEvents() // ändrar riktning vid tangenttryck etc.
+    for (player <- players) {
+      updateMoles(player) // flyttar, ritar, suddar, etc.
+      updateGeneral(); // updates text and other game mechanics
+      if (player.area.size >= (windowSize.width*windowSize.height) ) {
+        roundOver = true;
+        gameover(player);
+      }
+    }
+    if (players.filter(player => !player.eliminated).length == 1) { // all but one eliminated
+      roundOver = true
+      gameover(players.filter(player => !player.eliminated)(0))
+    }
+    if (roundOver) {
+      screen = Screen.GameOver
+    }
+  }
+  def gameOverTick(): Unit = {
+    // press key to play again
+    var e = window.nextEvent()
+    while (screen == Screen.GameOver && e != BlockWindow.Event.Undefined) {
+      e match
+        case BlockWindow.Event.KeyPressed(key) =>
+          if (key.toUpperCase() == "ENTER") {
+            openMenu()
+          }
+        case BlockWindow.Event.WindowClosed => windowClosed = true
+        case _ =>
+      if (screen == Screen.GameOver) {
+        e = window.nextEvent()
+      }
+    }
   }
 
   def handleMenuEvents(): Unit = {
@@ -342,8 +372,6 @@ class Game() {
             }
           }
         case BlockWindow.Event.WindowClosed =>
-          exitMenu = true;
-          quit = true;
           windowClosed = true
       e = window.nextEvent()
     }
@@ -362,8 +390,7 @@ class Game() {
             }
           }
         case BlockWindow.Event.WindowClosed =>
-          quit = true; // avsluta spel-loopen
-          windowClosed = true
+          windowClosed = true // avsluta spel-loopen
       e = window.nextEvent()
     }
   }
@@ -382,36 +409,5 @@ class Game() {
     statsPanels = Array(yellowPlayerAreaBar, bluePlayerAreaBar, greenPlayerAreaBar, redPlayerAreaBar).take(playerCount)
     window.resetPanels(statsPanels)
     GameProperties.lives = health
-  }
-
-  def start(): Unit = {
-    while (!quit) {
-      exitMenu = false
-      println("Start conquering!")
-      menuSelector.reset()
-      drawMenu()
-      menuLoop()
-      reset(menuSelector.players, menuSelector.health)
-      drawWorld()
-      gameLoop()
-
-      // prss key to play again
-      var e = window.nextEvent()
-      var nextGame = false
-      while (!nextGame && !quit) {
-        e match
-          case BlockWindow.Event.KeyPressed(key) =>
-            if (key.toUpperCase() == "ENTER") {
-              nextGame = true
-            }
-          case BlockWindow.Event.WindowClosed => quit = true;
-          case _ =>
-        e = window.nextEvent()
-        if (windowClosed) {
-          quit = true
-        }
-      }
-    }
-    println("QUIT EXECUTED")
   }
 }

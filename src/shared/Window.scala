@@ -1,4 +1,3 @@
-//> using scala 3.3
 package moleTerritory
 import java.awt.{Color as JColor}
 

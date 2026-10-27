@@ -1,0 +1,10 @@
+# Web version of Pixel Territory. Open http://<host>:8080 to play.
+# The image is published by the Release workflow when a version tag (v1.0.0) is pushed.
+services:
+  pixel-territory:
+    image: ghcr.io/k3lvin4sy/pixel-territory:latest
+    # build: .  # uncomment (and remove image) to build from source instead
+    container_name: pixel-territory
+    ports:
+      - "8080:80"
+    restart: unless-stopped

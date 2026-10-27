@@ -1,0 +1,7 @@
+.git
+.github
+.bsp
+.metals
+.vscode
+.scala-build
+web/main.js
