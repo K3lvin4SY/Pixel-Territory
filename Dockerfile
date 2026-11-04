@@ -12,6 +12,6 @@ COPY src ./src
 RUN mkdir -p /out && scala-cli --power package src/shared src/js --server=false -o /out/main.js
 
 FROM nginx:alpine
-COPY web/index.html /usr/share/nginx/html/index.html
+COPY web/index.html web/favicon.png /usr/share/nginx/html/
 COPY --from=build /out/main.js /usr/share/nginx/html/main.js
 EXPOSE 80

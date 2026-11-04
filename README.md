@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon.png" alt="Pixel Territory icon" width="160"></p>
+
 # Pixel Territory
 A 2D scala multiplayer game where players compete to claim as much territory as possible on a grid-based map.
 Players move their character around the map, leaving behind a trail that fills in the area they cover.
@@ -28,6 +30,9 @@ It's available on http://localhost:8080.
 - `src/shared`: the game itself, shared by both versions
 - `src/jvm`: desktop window (Swing) and main loop
 - `src/js`: browser window (canvas) and main loop
+- `assets/icon.png`: the game icon, bundled into the jar for the window and dock icon
+- `packaging/`: app icons for the release builds (`icon.icns` for macOS, `icon.ico` for Windows)
+- `web/favicon.png`: the browser tab icon (192×192 version of the icon)
 
 ## Releases
 Pushing a tag like `v1.0.0` runs `.github/workflows/release.yml`. It builds desktop apps for

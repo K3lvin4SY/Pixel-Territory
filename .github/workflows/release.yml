@@ -59,6 +59,11 @@ jobs:
       run:
         shell: bash
     steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            assets
+            packaging
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -81,15 +86,17 @@ jobs:
         run: |
           jpackage --type dmg --name "$APP_NAME" --app-version "$VERSION" \
             --input input --main-jar "$JAR_NAME" --main-class "$MAIN_CLASS" \
-            --add-modules "$JAVA_MODULES" --dest dist
+            --add-modules "$JAVA_MODULES" --icon packaging/icon.icns --dest dist
           mkdir release
           mv dist/*.dmg "release/$ARCHIVE_BASE.dmg"
       - name: Package (Windows / Linux)
         if: runner.os != 'macOS'
         run: |
+          # Windows needs an .ico, Linux a .png
+          if [[ "$RUNNER_OS" == "Windows" ]]; then icon=packaging/icon.ico; else icon=assets/icon.png; fi
           jpackage --type app-image --name "$APP_NAME" --app-version "$VERSION" \
             --input input --main-jar "$JAR_NAME" --main-class "$MAIN_CLASS" \
-            --add-modules "$JAVA_MODULES" --dest dist
+            --add-modules "$JAVA_MODULES" --icon "$icon" --dest dist
           mkdir release
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             (cd dist && 7z a "../release/$ARCHIVE_BASE.zip" "$APP_NAME")

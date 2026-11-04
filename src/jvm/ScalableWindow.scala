@@ -1,8 +1,9 @@
 package moleTerritory
 import java.awt.{Color as JColor}
-import java.awt.{Dimension, Font, Graphics, Graphics2D, GraphicsEnvironment, RenderingHints}
+import java.awt.{Dimension, Font, Graphics, Graphics2D, GraphicsEnvironment, RenderingHints, Taskbar}
 import java.awt.event.{KeyAdapter, KeyEvent, WindowAdapter, WindowEvent}
 import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import javax.swing.{JFrame, JPanel, SwingUtilities, WindowConstants}
 
@@ -53,6 +54,13 @@ class ScalableWindow(
     val screen = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
     val startScale = 1.0 min ((screen.width * 0.95) / width) min ((screen.height * 0.9) / height)
     panel.setPreferredSize(new Dimension((width * startScale).toInt, (height * startScale).toInt))
+
+    ScalableWindow.icon.foreach { icon =>
+      frame.setIconImage(icon) // title bar / taskbar on Windows and Linux
+      // dock icon on macOS (the packaged app gets it from icon.icns instead)
+      if (Taskbar.isTaskbarSupported && Taskbar.getTaskbar.isSupported(Taskbar.Feature.ICON_IMAGE))
+        Taskbar.getTaskbar.setIconImage(icon)
+    }
 
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame.setResizable(true)
@@ -109,6 +117,10 @@ class ScalableWindow(
 }
 
 object ScalableWindow {
+  /** The game icon from assets/icon.png, if it is on the classpath */
+  lazy val icon: Option[BufferedImage] =
+    Option(getClass.getResource("/icon.png")).flatMap(url => Option(ImageIO.read(url)))
+
   object Event {
     val Undefined = 0
     val KeyPressed = 1
