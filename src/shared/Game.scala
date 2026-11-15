@@ -253,7 +253,7 @@ class Game() {
   }
 
 
-  enum Screen { case Menu, Playing, GameOver }
+  enum Screen { case Menu, Info, Playing, GameOver }
   var screen = Screen.Menu
   var exitMenu = false
   val delayMillis = 80
@@ -262,6 +262,7 @@ class Game() {
   def tick(): Unit = {
     screen match
       case Screen.Menu => menuTick()
+      case Screen.Info => infoTick()
       case Screen.Playing => gameTick()
       case Screen.GameOver => gameOverTick()
   }
@@ -274,8 +275,38 @@ class Game() {
     screen = Screen.Menu
   }
 
+  def openInfo(): Unit = {
+    InfoScreen.draw(window)
+    screen = Screen.Info
+  }
+
+  /** Back to the menu from the info screen, keeping the current menu selection */
+  def closeInfo(): Unit = {
+    drawBackground()
+    menuSelector.invalidate()
+    menuSelector.update(window)
+    screen = Screen.Menu
+  }
+
+  def infoTick(): Unit = {
+    var e = window.nextEvent()
+    while (screen == Screen.Info && e != BlockWindow.Event.Undefined) {
+      e match
+        case BlockWindow.Event.KeyPressed(key) =>
+          if (Array("ESC", "ENTER", "BACKSPACE", "I").contains(key.toUpperCase())) {
+            closeInfo()
+          }
+        case BlockWindow.Event.WindowClosed => windowClosed = true
+        case _ =>
+      if (screen == Screen.Info) {
+        e = window.nextEvent()
+      }
+    }
+  }
+
   def menuTick(): Unit = {
     handleMenuEvents()
+    if (screen != Screen.Menu) return
     menuSelector.update(window)
     if (exitMenu && !windowClosed) {
       reset(menuSelector.players, menuSelector.health)
@@ -321,13 +352,19 @@ class Game() {
 
   def handleMenuEvents(): Unit = {
     var e = window.nextEvent()
-    while (e != BlockWindow.Event.Undefined) {
+    while (screen == Screen.Menu && e != BlockWindow.Event.Undefined) {
       e match
         case BlockWindow.Event.KeyPressed(key) =>
           //println("pressed: "+key.toUpperCase())
           // Navigate menu
           if (key.toUpperCase() == "ENTER") {
-            exitMenu = true
+            if (menuSelector.level == 3) { // INFO button
+              openInfo()
+            } else {
+              exitMenu = true
+            }
+          } else if (key.toUpperCase() == "I") {
+            openInfo()
           } else if (Array("LEFT", "A").contains(key.toUpperCase())) {
             if (menuSelector.level == 1) {
               if (menuSelector.players > 2) {
@@ -367,13 +404,15 @@ class Game() {
             }
           } else if (Array("DOWN", "S").contains(key.toUpperCase())) {
             menuSelector.level += 1
-            if (menuSelector.level == 3) {
-              menuSelector.level = 2
+            if (menuSelector.level == 4) {
+              menuSelector.level = 3
             }
           }
         case BlockWindow.Event.WindowClosed =>
           windowClosed = true
-      e = window.nextEvent()
+      if (screen == Screen.Menu) {
+        e = window.nextEvent()
+      }
     }
   }
   def handleEvents(): Unit = {
@@ -385,8 +424,6 @@ class Game() {
           for (player <- players) { // ändra riktning på resp. mullvad
             if (player.keyControl.has(key.toUpperCase())) {
               player.setDir(key.toUpperCase());
-            } else if (key.toUpperCase() == "F") {
-              player.setDir("FORCE");
             }
           }
         case BlockWindow.Event.WindowClosed =>

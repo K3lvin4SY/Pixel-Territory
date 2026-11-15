@@ -40,8 +40,35 @@ class MenuSelector() {
         window.writePixel(health.toString(), Pos(blockSize*(padLef+((width)/2).toInt), (padTop+((height*2)/3).toInt-1)*blockSize), Color.blue, blockSize*2)
       }
 
+      // INFO button, centered under the health value
+      val infoLabel = "INFO"
+      val infoX = blockSize*(padLef+width/2) - (infoLabel.length()*blockSize*2*0.6).toInt/2
+      val infoY = blockSize*(padTop+height*4/5)
+      if (level == 3) {
+        window.setRectanglePixel(Pos(infoX-blockSize, infoY-1))(infoLabel.length()*25+blockSize*2, 55)(Color.yellow)
+        window.setRectanglePixel(Pos(infoX-blockSize+5, infoY-1+5))(infoLabel.length()*25+blockSize*2-2*5, 55-2*5)(Color.white)
+        window.writePixel(infoLabel, Pos(infoX, infoY), Color.yellow, blockSize*2)
+      } else {
+        window.writePixel(infoLabel, Pos(infoX, infoY), Color.blue, blockSize*2)
+      }
 
+      // how to navigate the menu
+      val noticeSize = 22
+      val noticeLines = Array(
+        "W/S or Up/Down: select   A/D or Left/Right: change",
+        "ENTER: start game   I or INFO: rules and controls",
+      )
+      for ((line, row) <- noticeLines.zipWithIndex) {
+        val lineX = blockSize*(padLef+width/2) - (line.length()*noticeSize*0.6).toInt/2
+        window.writePixel(line, Pos(lineX, blockSize*(padTop+height-4) + row*(noticeSize+8)), Color.bgGray500, noticeSize)
+      }
     }
+  }
+  /** Makes the next update redraw the whole menu, e.g. after returning from the info screen */
+  def invalidate(): Unit = {
+    lastPlayers = 0
+    lastHealth = 0
+    lastLevel = 0
   }
   def reset(): Unit = {
     players = 2
